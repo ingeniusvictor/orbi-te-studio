@@ -75,4 +75,26 @@ describe("TE1 editable wizard form validation", () => {
 
     expect(validateFormStep("loads", draft).valid).toBe(true);
   });
+
+  it("keeps measurement step blocked without real evidence", () => {
+    const draft = createCasaGoyoDemoDraft();
+    expect(validateFormStep("measurements", draft).valid).toBe(false);
+  });
+
+  it("accepts a fully recorded measurement package", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.measurements = draft.measurements.map((measurement, index) => ({
+      ...measurement,
+      value: String(index + 1),
+      evidenceLabel: `EV-M-${index + 1}`,
+      verified: true
+    }));
+
+    expect(validateFormStep("measurements", draft).valid).toBe(true);
+  });
+
+  it("keeps Casa Goyo plan pending without a grounded source", () => {
+    const draft = createCasaGoyoDemoDraft();
+    expect(validateFormStep("plans", draft).valid).toBe(false);
+  });
 });
