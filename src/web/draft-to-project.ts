@@ -83,6 +83,19 @@ export function draftToTE1Project(
     .map((circuit) => circuitFromDraft(circuit, safeVoltage))
     .filter((circuit): circuit is Circuit => circuit !== undefined);
 
+  const mainPoles = numberOrUndefined(draft.board.mainPoles);
+  const mainCurrentA = numberOrUndefined(draft.board.mainCurrentA);
+  const mainBreakingCapacityKA = numberOrUndefined(
+    draft.board.mainBreakingCapacityKA
+  );
+  const differentialPoles = numberOrUndefined(draft.board.differentialPoles);
+  const differentialCurrentA = numberOrUndefined(
+    draft.board.differentialCurrentA
+  );
+  const differentialResidualMA = numberOrUndefined(
+    draft.board.differentialResidualMA
+  );
+
   return {
     id: projectId,
     name: draft.project.name.trim() || "Nuevo proyecto TE1",
@@ -90,6 +103,29 @@ export function draftToTE1Project(
     system: draft.project.system,
     voltageV: safeVoltage,
     boardName: draft.board.name.trim() || "TABLERO PENDIENTE",
+    ...(mainPoles !== undefined && mainCurrentA !== undefined
+      ? {
+          mainProtection: {
+            poles: mainPoles,
+            ratedCurrentA: mainCurrentA,
+            ...(mainBreakingCapacityKA !== undefined
+              ? { breakingCapacityKA: mainBreakingCapacityKA }
+              : {})
+          }
+        }
+      : {}),
+    ...(differentialPoles !== undefined &&
+    differentialCurrentA !== undefined &&
+    differentialResidualMA !== undefined
+      ? {
+          differentialProtection: {
+            poles: differentialPoles,
+            ratedCurrentA: differentialCurrentA,
+            residualCurrentMA: differentialResidualMA,
+            type: "unknown" as const
+          }
+        }
+      : {}),
     location: {
       ...(draft.location.address.trim()
         ? { address: draft.location.address.trim() }
