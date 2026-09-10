@@ -62,6 +62,8 @@ const server = createServer(async (request, response) => {
       const draft = (payload as { draft?: TE1FormDraft }).draft;
       const projectId =
         (payload as { projectId?: string }).projectId?.trim() || "TE1-DRAFT";
+      const evidenceUploads =
+        (payload as { evidenceUploads?: EvidenceVerificationUpload[] }).evidenceUploads;
 
       if (!draft) {
         json(response, 422, {
@@ -73,8 +75,42 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      if (!Array.isArray(evidenceUploads) || evidenceUploads.length === 0) {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_REQUEST",
+          message:
+            "La generación TE1 requiere evidencia binaria para verificación server-side.",
+          issues: ["evidenceUploads es obligatorio."]
+        });
+        return;
+      }
+
+      const verification = verifyEvidenceUploads(evidenceUploads);
+      if (!verification.ok) {
+        json(response, 422, {
+          ok: false,
+          code: "EVIDENCE_VERIFICATION_FAILED",
+          message:
+            "La evidencia recibida no superó la verificación SHA-256 en servidor.",
+          issues: verification.items.flatMap((item) =>
+            item.issues.map(
+              (issue) => `${item.filename} [${item.evidenceId}]: ${issue}`
+            )
+          ),
+          evidenceVerification: verification
+        });
+        return;
+      }
+
       const result = await generateTE1FromDraft(draft, projectId);
-      json(response, result.ok ? 200 : result.status, result);
+      json(
+        response,
+        result.ok ? 200 : result.status,
+        result.ok
+          ? { ...result, evidenceVerification: verification }
+          : result
+      );
       return;
     } catch (error) {
       json(response, 422, {
