@@ -1,32 +1,69 @@
+import { useState } from "react";
 import { buildWebExportSummary } from "./export-summary.js";
+import {
+  downloadArtifact,
+  requestTE1Package,
+  type ApiGeneratedArtifact
+} from "./generation-api.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 
-export function ExportPanel({ draft }: { draft: TE1FormDraft }) {
+export function ExportPanel({
+  draft,
+  projectId
+}: {
+  draft: TE1FormDraft;
+  projectId: string;
+}) {
   const summary = buildWebExportSummary(draft);
+  const [state, setState] = useState<
+    "idle" | "generating" | "success" | "error"
+  >("idle");
+  const [generated, setGenerated] = useState<ApiGeneratedArtifact[]>([]);
+  const [issues, setIssues] = useState<string[]>([]);
 
-  const downloadManifest = () => {
-    const blob = new Blob([summary.manifestJson], {
-      type: "application/json;charset=utf-8"
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "orbi-te1-project-manifest.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
+  const generatePackage = async () => {
+    setState("generating");
+    setIssues([]);
+    setGenerated([]);
+
+    try {
+      const result = await requestTE1Package(draft, projectId);
+
+      if (!result.ok) {
+        setIssues(
+          result.issues.length > 0 ? result.issues : [result.message]
+        );
+        setState("error");
+        return;
+      }
+
+      setGenerated(result.artifacts);
+      setState("success");
+    } catch (error) {
+      setIssues([
+        error instanceof Error
+          ? error.message
+          : "No fue posible contactar el servicio de generación."
+      ]);
+      setState("error");
+    }
   };
 
   return (
     <div className="export-panel">
-      <div className={`review-banner ${summary.approvedForPreparation ? "ready" : "blocked"}`}>
+      <div
+        className={`review-banner ${
+          summary.approvedForPreparation ? "ready" : "blocked"
+        }`}
+      >
         <strong>
           {summary.approvedForPreparation
-            ? "Paquete habilitado para preparación."
+            ? "Paquete habilitado para generación."
             : "Exportación bloqueada."}
         </strong>
         <span>
-          ORBI prepara documentos; la revisión y declaración formal siguen bajo
-          control del profesional autorizado.
+          ORBI prepara los archivos técnicos. La declaración formal ante SEC
+          permanece bajo control del profesional autorizado.
         </span>
       </div>
 
@@ -49,13 +86,52 @@ export function ExportPanel({ draft }: { draft: TE1FormDraft }) {
       <div className="action-row">
         <button
           type="button"
-          className="secondary"
-          disabled={!summary.approvedForPreparation}
-          onClick={downloadManifest}
+          className="primary"
+          disabled={
+            !summary.approvedForPreparation || state === "generating"
+          }
+          onClick={generatePackage}
         >
-          Descargar manifest JSON
+          {state === "generating"
+            ? "Generando paquete..."
+            : "Generar paquete TE1"}
         </button>
       </div>
+
+      {state === "error" && (
+        <div className="generation-result error">
+          <strong>No se generó el paquete.</strong>
+          <ul>
+            {issues.map((issue) => (
+              <li key={issue}>{issue}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {state === "success" && (
+        <div className="generation-result success">
+          <strong>Paquete generado por el servicio local.</strong>
+          <span>
+            Descarga cada artefacto para revisarlo antes de cualquier uso
+            documental.
+          </span>
+
+          <div className="generated-files">
+            {generated.map((artifact) => (
+              <button
+                type="button"
+                className="generated-file"
+                key={artifact.filename}
+                onClick={() => downloadArtifact(artifact)}
+              >
+                <span>{artifact.filename}</span>
+                <b>Descargar</b>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
