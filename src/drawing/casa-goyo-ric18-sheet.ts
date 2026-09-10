@@ -10,6 +10,7 @@ import { renderRic18Footer } from "./render-ric18-footer.js";
 import { renderUnilinearPanel } from "./render-unilinear-svg.js";
 import { getRic18SheetGeometry } from "./ric18-layout.js";
 import { renderSymbolLegendPanel } from "./symbol-legend.js";
+import { renderPanelFrame } from "./panel-frame.js";
 import { esc, rect, text } from "./svg-primitives.js";
 
 const style = `
@@ -51,34 +52,100 @@ export function renderCasaGoyoRic18A2Svg(): string {
   const h = geometry.drawingArea.height;
 
   body.push(rect(x, y, w, h, "med"));
-  body.push(text(x + w / 2, y + 9, "PROYECTO TE1 - CASA GOYO - OSORNO", "sheet-title", "middle"));
+  body.push(
+    text(
+      x + w / 2,
+      y + 9,
+      "PROYECTO TE1 - CASA GOYO - OSORNO",
+      "sheet-title",
+      "middle"
+    )
+  );
 
-  body.push(`<g transform="translate(${x + 5},${y + 16}) scale(0.82)">${renderUnilinearPanel(
-    buildUnilinearModel(casaGoyoReference)
-  )}</g>`);
+  const topY = y + 15;
+  const topH = 145;
+  const leftW = 320;
+  const gap = 8;
+  const rightX = x + leftW + gap;
+  const rightW = w - leftW - gap;
 
-  body.push(`<g transform="translate(${x + 290},${y + 18}) scale(0.65)">${renderPanelFrontPanel(
-    panel
-  )}</g>`);
+  body.push(
+    renderPanelFrame(
+      x + 4,
+      topY,
+      leftW - 4,
+      topH,
+      "DIAGRAMA UNILINEAL - TDA CASA GOYO",
+      renderUnilinearPanel(buildUnilinearModel(casaGoyoReference)),
+      { scale: 0.86, offsetX: 12, offsetY: 10 }
+    )
+  );
 
-  body.push(`<g transform="translate(${x + 5},${y + 175}) scale(0.82)">${renderLoadSchedulePanel(
-    buildLoadSchedule(casaGoyoReference)
-  )}</g>`);
+  body.push(
+    renderPanelFrame(
+      rightX,
+      topY,
+      rightW,
+      topH,
+      "VISTA FRONTAL TABLERO",
+      renderPanelFrontPanel(panel),
+      { scale: 0.61, offsetX: 4, offsetY: 11 }
+    )
+  );
 
-  body.push(`<g transform="translate(${x + 340},${y + 178}) scale(0.80)">${renderConnectionDetailPanel()}</g>`);
+  const bottomY = topY + topH + 7;
+  const bottomH = h - (bottomY - y) - 17;
 
-  body.push(`<g transform="translate(${x + 340},${y + 238}) scale(1.05)">${renderSymbolLegendPanel()}</g>`);
+  body.push(
+    renderPanelFrame(
+      x + 4,
+      bottomY,
+      leftW - 4,
+      bottomH,
+      "CUADRO DE CARGAS / CIRCUITOS",
+      renderLoadSchedulePanel(buildLoadSchedule(casaGoyoReference)),
+      { scale: 0.88, offsetX: 6, offsetY: 13 }
+    )
+  );
 
-  body.push(text(
-    x + 5,
-    y + h - 7,
-    "LOS MATERIALES QUE REQUIEREN CERTIFICACIÓN PARA SU USO, CUMPLEN CON ESTE REQUISITO.",
-    "small"
-  ));
+  body.push(
+    renderPanelFrame(
+      rightX,
+      bottomY,
+      rightW,
+      58,
+      "DETALLE EMPALME Y PUESTAS A TIERRA",
+      renderConnectionDetailPanel(),
+      { scale: 0.72, offsetX: 9, offsetY: 11 }
+    )
+  );
 
-  body.push(`<g transform="translate(${geometry.croquisBox.x},${geometry.footerBand.y})">${renderRic18Footer(
-    titleBlock
-  )}</g>`);
+  body.push(
+    renderPanelFrame(
+      rightX,
+      bottomY + 64,
+      rightW,
+      bottomH - 64,
+      "CUADRO DE SIMBOLOGÍA",
+      renderSymbolLegendPanel(),
+      { scale: 0.92, offsetX: 7, offsetY: 11 }
+    )
+  );
+
+  body.push(
+    text(
+      x + 5,
+      y + h - 5,
+      "LOS MATERIALES QUE REQUIEREN CERTIFICACIÓN PARA SU USO, CUMPLEN CON ESTE REQUISITO.",
+      "small"
+    )
+  );
+
+  body.push(
+    `<g transform="translate(${geometry.croquisBox.x},${geometry.footerBand.y})">${renderRic18Footer(
+      titleBlock
+    )}</g>`
+  );
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="594mm" height="420mm" viewBox="0 0 594 420">
@@ -92,6 +159,8 @@ ${rect(
   "thick"
 )}
 ${body.join("")}
-<text x="584" y="416" class="small" text-anchor="end">${esc("Presentación estructurada según RIC N°18 - revisión profesional requerida")}</text>
+<text x="584" y="416" class="small" text-anchor="end">${esc(
+  "Presentación estructurada según RIC N°18 - revisión profesional requerida"
+)}</text>
 </svg>`;
 }
