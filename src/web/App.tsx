@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  blockWizardStep,
   completeWizardStep,
   createTE1Wizard,
   wizardProgress,
@@ -10,6 +11,13 @@ import { casaGoyoFieldIntake } from "../reference/casa-goyo-intake.js";
 import { buildMinimumFieldChecklist } from "../field/checklist.js";
 import { validateTE1 } from "../engine/validate-te1.js";
 import { buildProjectManifest } from "../export/project-manifest.js";
+import { StepForm } from "./StepForm.js";
+import {
+  createCasaGoyoDemoDraft,
+  createEmptyTE1FormDraft,
+  type TE1FormDraft
+} from "./te1-form-model.js";
+import { validateFormStep } from "./te1-form-validation.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -18,6 +26,9 @@ export function App() {
   const [wizard, setWizard] = useState<TE1WizardState>(() =>
     createTE1Wizard(casaGoyoReference.id)
   );
+  const [draft, setDraft] = useState<TE1FormDraft>(() =>
+    createCasaGoyoDemoDraft()
+  );
 
   const checklist = useMemo(
     () => buildMinimumFieldChecklist(casaGoyoFieldIntake),
@@ -25,6 +36,12 @@ export function App() {
   );
   const validation = useMemo(() => validateTE1(casaGoyoReference), []);
   const manifest = useMemo(() => buildProjectManifest(casaGoyoReference), []);
+
+  const startProject = (demo: boolean) => {
+    setDraft(demo ? createCasaGoyoDemoDraft() : createEmptyTE1FormDraft());
+    setWizard(createTE1Wizard(demo ? casaGoyoReference.id : "TE1-DRAFT"));
+    setMode("te1");
+  };
 
   if (mode === "home") {
     return (
@@ -51,10 +68,16 @@ export function App() {
           </div>
 
           <div className="project-grid">
-            <button className="project-card active" onClick={() => setMode("te1")}>
+            <button className="project-card active" onClick={() => startProject(false)}>
               <span className="project-code">TE1</span>
               <strong>Instalación eléctrica interior</strong>
-              <small>Viviendas, departamentos y otros consumos.</small>
+              <small>Crear un proyecto nuevo desde cero.</small>
+            </button>
+
+            <button className="project-card demo" onClick={() => startProject(true)}>
+              <span className="project-code">DEMO</span>
+              <strong>Casa Goyo - Osorno</strong>
+              <small>Abrir el caso de referencia con datos parciales.</small>
             </button>
 
             <button className="project-card disabled" disabled>
@@ -70,10 +93,22 @@ export function App() {
 
   const progress = wizardProgress(wizard);
   const current = wizard.steps.find((step) => step.id === wizard.currentStep)!;
+  const stepValidation = validateFormStep(current.id, draft);
 
   const advance = () => {
-    if (current.status === "locked") return;
+    const result = validateFormStep(current.id, draft);
+    if (!result.valid) {
+      setWizard((state) => blockWizardStep(state, current.id, result.issues));
+      return;
+    }
+
     setWizard((state) => completeWizardStep(state, current.id));
+  };
+
+  const reset = () => {
+    const isDemo = wizard.projectId === casaGoyoReference.id;
+    setDraft(isDemo ? createCasaGoyoDemoDraft() : createEmptyTE1FormDraft());
+    setWizard(createTE1Wizard(isDemo ? casaGoyoReference.id : "TE1-DRAFT"));
   };
 
   return (
@@ -83,10 +118,12 @@ export function App() {
           <button className="back-link" onClick={() => setMode("home")}>
             ← Proyectos
           </button>
-          <p className="eyebrow">TE1 · PROYECTO DE REFERENCIA</p>
-          <h1>{casaGoyoReference.name}</h1>
+          <p className="eyebrow">
+            TE1 · {wizard.projectId === casaGoyoReference.id ? "PROYECTO DE REFERENCIA" : "NUEVO PROYECTO"}
+          </p>
+          <h1>{draft.project.name || "Nuevo proyecto TE1"}</h1>
         </div>
-        <span className="status-pill warning">Datos incompletos</span>
+        <span className="status-pill warning">Borrador</span>
       </header>
 
       <div className="workspace">
@@ -127,59 +164,74 @@ export function App() {
               </span>
             </div>
 
-            <div className="info-grid">
-              <Info label="Proyecto" value={casaGoyoReference.id} />
-              <Info label="Destino" value="Casa habitación" />
-              <Info label="Comuna" value={casaGoyoReference.location.commune ?? "PENDIENTE"} />
-              <Info label="Región" value={casaGoyoReference.location.region ?? "PENDIENTE"} />
-              <Info label="Circuitos" value={String(casaGoyoReference.circuits.length)} />
-              <Info label="Potencia instalada" value={String(manifest.totals.installedPowerW)} />
-            </div>
+            <StepForm step={current.id} draft={draft} onChange={setDraft} />
+
+            {!stepValidation.valid && (
+              <div className="validation-box">
+                <strong>Información requerida</strong>
+                <ul>
+                  {stepValidation.issues.map((issue) => (
+                    <li key={issue}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="action-row">
-              <button className="secondary" onClick={() => setWizard(createTE1Wizard(casaGoyoReference.id))}>
-                Reiniciar demo
+              <button className="secondary" onClick={reset}>
+                Reiniciar
               </button>
               <button className="primary" onClick={advance}>
-                Completar paso y continuar →
+                Validar y continuar →
               </button>
             </div>
           </div>
 
-          <div className="split-grid">
-            <div className="section-card">
-              <p className="eyebrow">EVIDENCIA DE TERRENO</p>
-              <h3>Checklist mínimo</h3>
-              <div className="list">
-                {checklist.map((item) => (
-                  <div className="list-item" key={item.id}>
-                    <span className={`dot ${item.status}`} />
-                    <div>
-                      <strong>{item.label}</strong>
-                      <small>{item.message}</small>
-                    </div>
-                    <b>{item.status.toUpperCase()}</b>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="section-card">
-              <p className="eyebrow">QA TÉCNICO</p>
-              <h3>Hallazgos actuales</h3>
-              <div className="list">
-                {validation.findings.slice(0, 6).map((finding) => (
-                  <div className="list-item" key={finding.code}>
-                    <span className={`dot ${finding.severity}`} />
-                    <div>
-                      <strong>{finding.code}</strong>
-                      <small>{finding.message}</small>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="info-grid">
+            <Info label="Proyecto" value={draft.project.name || "PENDIENTE"} />
+            <Info label="Destino" value={destinationLabel(draft.project.destination)} />
+            <Info label="Comuna" value={draft.location.commune || "PENDIENTE"} />
+            <Info label="Región" value={draft.location.region || "PENDIENTE"} />
+            <Info label="Tablero" value={draft.board.name || "PENDIENTE"} />
+            <Info label="Potencia instalada" value={String(manifest.totals.installedPowerW)} />
           </div>
+
+          {wizard.projectId === casaGoyoReference.id && (
+            <div className="split-grid">
+              <div className="section-card">
+                <p className="eyebrow">EVIDENCIA DE TERRENO</p>
+                <h3>Checklist mínimo</h3>
+                <div className="list">
+                  {checklist.map((item) => (
+                    <div className="list-item" key={item.id}>
+                      <span className={`dot ${item.status}`} />
+                      <div>
+                        <strong>{item.label}</strong>
+                        <small>{item.message}</small>
+                      </div>
+                      <b>{item.status.toUpperCase()}</b>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="section-card">
+                <p className="eyebrow">QA TÉCNICO</p>
+                <h3>Hallazgos actuales</h3>
+                <div className="list">
+                  {validation.findings.slice(0, 6).map((finding) => (
+                    <div className="list-item" key={finding.code}>
+                      <span className={`dot ${finding.severity}`} />
+                      <div>
+                        <strong>{finding.code}</strong>
+                        <small>{finding.message}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </main>
@@ -193,4 +245,10 @@ function Info({ label, value }: { label: string; value: string }) {
       <strong>{value}</strong>
     </div>
   );
+}
+
+function destinationLabel(value: TE1FormDraft["project"]["destination"]): string {
+  if (value === "casa-habitacion") return "Casa habitación";
+  if (value === "departamento") return "Departamento";
+  return "Otro";
 }
