@@ -28,12 +28,14 @@ export function EvidencePicker({
 }) {
   const [items, setItems] = useState<LocalEvidenceMetadata[]>([]);
   const [message, setMessage] = useState("");
+  const [loaded, setLoaded] = useState(false);
 
   const refresh = async () => {
     try {
       const evidence = await listEvidence(projectId);
       setItems(evidence);
       setMessage("");
+      setLoaded(true);
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -60,6 +62,12 @@ export function EvidencePicker({
     }
     return items;
   }, [items, category, allowCategories]);
+
+  useEffect(() => {
+    if (loaded && value && !options.some((item) => item.id === value)) {
+      onSelect(undefined);
+    }
+  }, [loaded, value, options, onSelect]);
 
   const openSelected = async () => {
     if (!value) return;
