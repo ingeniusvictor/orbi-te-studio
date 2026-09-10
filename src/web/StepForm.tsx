@@ -313,7 +313,7 @@ export function StepForm({ step, draft, projectId, onChange }: Props) {
   }
 
   if (step === "review") {
-    return <ReviewForm draft={draft} onChange={onChange} />;
+    return <ReviewForm draft={draft} projectId={projectId} onChange={onChange} />;
   }
 
   if (step === "export") {
