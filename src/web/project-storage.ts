@@ -1,8 +1,12 @@
 import type { TE1WizardState } from "../wizard/te1-wizard.js";
-import type { TE1FormDraft } from "./te1-form-model.js";
+import {
+  createEmptyTE1FormDraft,
+  type TE1FormDraft
+} from "./te1-form-model.js";
 
-export const PROJECT_STORE_KEY = "orbi.te-studio.projects.v1";
-export const PROJECT_STORE_SCHEMA = 1 as const;
+export const PROJECT_STORE_KEY = "orbi.te-studio.projects.v2";
+export const LEGACY_PROJECT_STORE_KEY = "orbi.te-studio.projects.v1";
+export const PROJECT_STORE_SCHEMA = 2 as const;
 
 export interface StoredTE1Project {
   schemaVersion: typeof PROJECT_STORE_SCHEMA;
@@ -35,16 +39,23 @@ export function decodeProjectStore(raw: string | null): ProjectStoreEnvelope {
   if (!raw) return emptyEnvelope();
 
   try {
-    const parsed = JSON.parse(raw) as Partial<ProjectStoreEnvelope>;
+    const parsed = JSON.parse(raw) as {
+      schemaVersion?: number;
+      projects?: unknown[];
+    };
 
     if (
-      parsed.schemaVersion !== PROJECT_STORE_SCHEMA ||
+      (parsed.schemaVersion !== 1 &&
+        parsed.schemaVersion !== PROJECT_STORE_SCHEMA) ||
       !Array.isArray(parsed.projects)
     ) {
       return emptyEnvelope();
     }
 
-    const projects = parsed.projects.filter(isStoredTE1Project);
+    const projects = parsed.projects
+      .map(migrateStoredProject)
+      .filter((project): project is StoredTE1Project => project !== undefined);
+
     return {
       schemaVersion: PROJECT_STORE_SCHEMA,
       projects
@@ -55,7 +66,13 @@ export function decodeProjectStore(raw: string | null): ProjectStoreEnvelope {
 }
 
 export function listStoredProjects(storage: StorageLike): StoredTE1Project[] {
-  return decodeProjectStore(storage.getItem(PROJECT_STORE_KEY)).projects
+  const current = decodeProjectStore(storage.getItem(PROJECT_STORE_KEY));
+  const envelope =
+    current.projects.length > 0
+      ? current
+      : decodeProjectStore(storage.getItem(LEGACY_PROJECT_STORE_KEY));
+
+  return envelope.projects
     .slice()
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
@@ -73,21 +90,19 @@ export function saveStoredProject(
   storage: StorageLike,
   input: Omit<StoredTE1Project, "schemaVersion" | "updatedAt">
 ): StoredTE1Project {
-  const envelope = decodeProjectStore(storage.getItem(PROJECT_STORE_KEY));
+  const existing = listStoredProjects(storage);
   const record: StoredTE1Project = {
     schemaVersion: PROJECT_STORE_SCHEMA,
     projectId: input.projectId,
     name: input.name.trim() || "Proyecto TE1 sin nombre",
     updatedAt: new Date().toISOString(),
-    draft: structuredClone(input.draft),
+    draft: structuredClone(normalizeDraft(input.draft)),
     wizard: structuredClone(input.wizard)
   };
 
   const projects = [
     record,
-    ...envelope.projects.filter(
-      (project) => project.projectId !== input.projectId
-    )
+    ...existing.filter((project) => project.projectId !== input.projectId)
   ];
 
   storage.setItem(
@@ -97,6 +112,7 @@ export function saveStoredProject(
       projects
     } satisfies ProjectStoreEnvelope)
   );
+  storage.removeItem(LEGACY_PROJECT_STORE_KEY);
 
   return record;
 }
@@ -105,13 +121,13 @@ export function deleteStoredProject(
   storage: StorageLike,
   projectId: string
 ): void {
-  const envelope = decodeProjectStore(storage.getItem(PROJECT_STORE_KEY));
-  const projects = envelope.projects.filter(
+  const projects = listStoredProjects(storage).filter(
     (project) => project.projectId !== projectId
   );
 
   if (projects.length === 0) {
     storage.removeItem(PROJECT_STORE_KEY);
+    storage.removeItem(LEGACY_PROJECT_STORE_KEY);
     return;
   }
 
@@ -122,6 +138,7 @@ export function deleteStoredProject(
       projects
     } satisfies ProjectStoreEnvelope)
   );
+  storage.removeItem(LEGACY_PROJECT_STORE_KEY);
 }
 
 export function createProjectId(now = new Date()): string {
@@ -132,17 +149,77 @@ export function createProjectId(now = new Date()): string {
   return `TE1-${stamp}`;
 }
 
-function isStoredTE1Project(value: unknown): value is StoredTE1Project {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<StoredTE1Project>;
+function migrateStoredProject(value: unknown): StoredTE1Project | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as {
+    projectId?: unknown;
+    name?: unknown;
+    updatedAt?: unknown;
+    draft?: unknown;
+    wizard?: unknown;
+  };
 
-  return (
-    candidate.schemaVersion === PROJECT_STORE_SCHEMA &&
-    typeof candidate.projectId === "string" &&
-    candidate.projectId.length > 0 &&
-    typeof candidate.name === "string" &&
-    typeof candidate.updatedAt === "string" &&
-    Boolean(candidate.draft) &&
-    Boolean(candidate.wizard)
-  );
+  if (
+    typeof candidate.projectId !== "string" ||
+    candidate.projectId.length === 0 ||
+    typeof candidate.name !== "string" ||
+    typeof candidate.updatedAt !== "string" ||
+    !candidate.draft ||
+    !candidate.wizard
+  ) {
+    return undefined;
+  }
+
+  return {
+    schemaVersion: PROJECT_STORE_SCHEMA,
+    projectId: candidate.projectId,
+    name: candidate.name,
+    updatedAt: candidate.updatedAt,
+    draft: normalizeDraft(candidate.draft),
+    wizard: candidate.wizard as TE1WizardState
+  };
+}
+
+function normalizeDraft(value: unknown): TE1FormDraft {
+  const base = createEmptyTE1FormDraft();
+  if (!value || typeof value !== "object") return base;
+
+  const raw = value as Partial<TE1FormDraft> & {
+    measurements?: Array<Partial<TE1FormDraft["measurements"][number]>>;
+  };
+
+  return {
+    ...base,
+    ...raw,
+    project: { ...base.project, ...(raw.project ?? {}) },
+    owner: { ...base.owner, ...(raw.owner ?? {}) },
+    location: {
+      ...base.location,
+      ...(raw.location ?? {}),
+      locationSketchEvidenceId:
+        raw.location?.locationSketchEvidenceId ?? ""
+    },
+    board: {
+      ...base.board,
+      ...(raw.board ?? {}),
+      frontalEvidenceId: raw.board?.frontalEvidenceId ?? "",
+      legendEvidenceId: raw.board?.legendEvidenceId ?? ""
+    },
+    circuits: Array.isArray(raw.circuits)
+      ? raw.circuits
+      : base.circuits,
+    measurements: Array.isArray(raw.measurements)
+      ? raw.measurements.map((measurement, index) => ({
+          ...(base.measurements[index] ?? base.measurements[0]!),
+          ...measurement,
+          evidenceId: measurement.evidenceId ?? ""
+        }))
+      : base.measurements,
+    plan: {
+      ...base.plan,
+      ...(raw.plan ?? {}),
+      sourceEvidenceId: raw.plan?.sourceEvidenceId ?? ""
+    },
+    review: { ...base.review, ...(raw.review ?? {}) }
+  };
 }
