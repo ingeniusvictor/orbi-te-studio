@@ -3,7 +3,7 @@ import { circle, line, rect, text } from "./svg-primitives.js";
 
 export function renderUnilinearPanel(model: UnilinearModel): string {
   const width = 330;
-  const height = 190;
+  const height = 150;
   const cx = width / 2;
   const parts: string[] = [];
 
