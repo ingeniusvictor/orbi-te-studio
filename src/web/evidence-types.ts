@@ -4,6 +4,7 @@ export type EvidenceCategory =
   | "board-legend"
   | "location-sketch"
   | "architectural-plan"
+  | "measured-sketch"
   | "legacy-plan"
   | "measurement"
   | "service"
