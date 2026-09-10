@@ -59,6 +59,8 @@ export interface TE1FormDraft {
     region: string;
     wgs84: string;
     utm: string;
+    locationSketchEvidenceLabel: string;
+    locationSketchVerified: boolean;
   };
   board: {
     name: string;
@@ -181,7 +183,9 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       commune: "",
       region: "",
       wgs84: "",
-      utm: ""
+      utm: "",
+      locationSketchEvidenceLabel: "",
+      locationSketchVerified: false
     },
     board: {
       name: "",
@@ -224,7 +228,9 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       commune: "Osorno",
       region: "Los Lagos",
       wgs84: "",
-      utm: ""
+      utm: "",
+      locationSketchEvidenceLabel: "",
+      locationSketchVerified: false
     },
     board: {
       name: "TDA CASA GOYO",
