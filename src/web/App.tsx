@@ -170,7 +170,12 @@ export function App() {
               </span>
             </div>
 
-            <StepForm step={current.id} draft={draft} onChange={setDraft} />
+            <StepForm
+              step={current.id}
+              draft={draft}
+              projectId={wizard.projectId}
+              onChange={setDraft}
+            />
 
             {!stepValidation.valid && (
               <div className="validation-box">
