@@ -26,6 +26,7 @@ function circuitFromDraft(
       ? roundElectrical(currentFromSinglePhasePower(installedPowerW, voltageV))
       : undefined;
 
+  const breakingCapacityKA = numberOrUndefined(draft.breakingCapacityKA);
   const phaseMm2 = numberOrUndefined(draft.conductorPhaseMm2);
   const neutralMm2 = numberOrUndefined(draft.conductorNeutralMm2);
   const peMm2 = numberOrUndefined(draft.conductorPeMm2);
@@ -38,8 +39,8 @@ function circuitFromDraft(
     protection: {
       poles: 1,
       ratedCurrentA: breakerA,
-      ...(numberOrUndefined(draft.breakingCapacityKA) !== undefined
-        ? { breakingCapacityKA: numberOrUndefined(draft.breakingCapacityKA) }
+      ...(breakingCapacityKA !== undefined
+        ? { breakingCapacityKA }
         : {}),
       ...(draft.curve.trim() ? { curve: draft.curve.trim() } : {})
     },
