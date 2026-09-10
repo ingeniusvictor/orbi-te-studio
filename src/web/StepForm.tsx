@@ -5,6 +5,7 @@ import { PlanForm } from "./PlanForm.js";
 import { CompliancePanel } from "./CompliancePanel.js";
 import { ReviewForm } from "./ReviewForm.js";
 import { ExportPanel } from "./ExportPanel.js";
+import { EvidencePicker } from "./EvidencePicker.js";
 import {
   createCircuitDraft,
   type TE1CircuitDraft,
@@ -140,13 +141,24 @@ export function StepForm({ step, draft, projectId, onChange }: Props) {
         <Field label="UTM">
           <input value={draft.location.utm} onChange={updateLocation("utm")} placeholder="Huso / Este / Norte" />
         </Field>
-        <Field label="Evidencia croquis de ubicación" wide>
-          <input
-            value={draft.location.locationSketchEvidenceLabel}
-            onChange={updateLocation("locationSketchEvidenceLabel")}
-            placeholder="Ej. captura/croquis con calles o referencia pública"
+        <div className="wide">
+          <EvidencePicker
+            projectId={projectId}
+            category="location-sketch"
+            value={draft.location.locationSketchEvidenceId}
+            label="Evidencia croquis de ubicación"
+            onSelect={(selection) =>
+              onChange({
+                ...draft,
+                location: {
+                  ...draft.location,
+                  locationSketchEvidenceId: selection?.id ?? "",
+                  locationSketchEvidenceLabel: selection?.filename ?? ""
+                }
+              })
+            }
           />
-        </Field>
+        </div>
         <label className="verify-check wide">
           <input
             type="checkbox"
@@ -176,12 +188,42 @@ export function StepForm({ step, draft, projectId, onChange }: Props) {
         <Field label="Cantidad de módulos">
           <input value={draft.board.totalWays} onChange={updateBoard("totalWays")} inputMode="numeric" />
         </Field>
-        <Field label="Foto frontal / referencia" wide>
-          <input value={draft.board.frontalPhotoLabel} onChange={updateBoard("frontalPhotoLabel")} placeholder="Archivo o evidencia cargada" />
-        </Field>
-        <Field label="Foto leyenda / referencia" wide>
-          <input value={draft.board.legendPhotoLabel} onChange={updateBoard("legendPhotoLabel")} placeholder="Opcional" />
-        </Field>
+        <div className="wide">
+          <EvidencePicker
+            projectId={projectId}
+            category="board-front"
+            value={draft.board.frontalEvidenceId}
+            label="Foto frontal del tablero"
+            onSelect={(selection) =>
+              onChange({
+                ...draft,
+                board: {
+                  ...draft.board,
+                  frontalEvidenceId: selection?.id ?? "",
+                  frontalPhotoLabel: selection?.filename ?? ""
+                }
+              })
+            }
+          />
+        </div>
+        <div className="wide">
+          <EvidencePicker
+            projectId={projectId}
+            category="board-legend"
+            value={draft.board.legendEvidenceId}
+            label="Foto de leyenda del tablero"
+            onSelect={(selection) =>
+              onChange({
+                ...draft,
+                board: {
+                  ...draft.board,
+                  legendEvidenceId: selection?.id ?? "",
+                  legendPhotoLabel: selection?.filename ?? ""
+                }
+              })
+            }
+          />
+        </div>
 
         <div className="subsection wide">
           <strong>Protección general</strong>
@@ -253,11 +295,17 @@ export function StepForm({ step, draft, projectId, onChange }: Props) {
   }
 
   if (step === "measurements") {
-    return <MeasurementForm draft={draft} onChange={onChange} />;
+    return (
+      <MeasurementForm
+        draft={draft}
+        projectId={projectId}
+        onChange={onChange}
+      />
+    );
   }
 
   if (step === "plans") {
-    return <PlanForm draft={draft} onChange={onChange} />;
+    return <PlanForm draft={draft} projectId={projectId} onChange={onChange} />;
   }
 
   if (step === "compliance") {
