@@ -1,10 +1,13 @@
+import { EvidencePicker } from "./EvidencePicker.js";
 import type { TE1FormDraft, TE1MeasurementDraft } from "./te1-form-model.js";
 
 export function MeasurementForm({
   draft,
+  projectId,
   onChange
 }: {
   draft: TE1FormDraft;
+  projectId: string;
   onChange: (draft: TE1FormDraft) => void;
 }) {
   const update = (index: number, patch: Partial<TE1MeasurementDraft>) => {
@@ -21,7 +24,7 @@ export function MeasurementForm({
       <div className="circuit-toolbar">
         <div>
           <strong>Mediciones de verificación</strong>
-          <small>Registre valor, unidad y evidencia; no estime resultados.</small>
+          <small>Registre valor, unidad y vincule evidencia real; no estime resultados.</small>
         </div>
       </div>
 
@@ -57,16 +60,20 @@ export function MeasurementForm({
                 />
               </label>
 
-              <label className="field wide">
-                <span>Evidencia / instrumento</span>
-                <input
-                  value={measurement.evidenceLabel}
-                  placeholder="Ej. Foto instrumento HIOKI / registro de ensayo"
-                  onChange={(event) =>
-                    update(index, { evidenceLabel: event.target.value })
+              <div className="wide">
+                <EvidencePicker
+                  projectId={projectId}
+                  category="measurement"
+                  value={measurement.evidenceId}
+                  label="Evidencia / instrumento"
+                  onSelect={(selection) =>
+                    update(index, {
+                      evidenceId: selection?.id ?? "",
+                      evidenceLabel: selection?.filename ?? ""
+                    })
                   }
                 />
-              </label>
+              </div>
 
               <label className="field wide">
                 <span>Notas</span>
@@ -87,7 +94,7 @@ export function MeasurementForm({
                     update(index, { verified: event.target.checked })
                   }
                 />
-                <span>Medición verificada y respaldada por evidencia</span>
+                <span>Medición verificada y respaldada por la evidencia vinculada</span>
               </label>
             </div>
           </section>
