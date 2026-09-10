@@ -36,6 +36,7 @@ describe("unified RIC compliance summary", () => {
   it("does not treat an architectural plan as a location sketch", () => {
     const draft = createCasaGoyoDemoDraft();
     draft.plan.sourceType = "architectural-plan";
+    draft.plan.sourceEvidenceId = "EV-PLAN-ARCH";
     draft.plan.sourceLabel = "planta.pdf";
     draft.plan.reviewed = true;
 
