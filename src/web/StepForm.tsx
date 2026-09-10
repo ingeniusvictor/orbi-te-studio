@@ -3,6 +3,8 @@ import type { TE1WizardStep } from "../wizard/te1-wizard.js";
 import { MeasurementForm } from "./MeasurementForm.js";
 import { PlanForm } from "./PlanForm.js";
 import { CompliancePanel } from "./CompliancePanel.js";
+import { ReviewForm } from "./ReviewForm.js";
+import { ExportPanel } from "./ExportPanel.js";
 import {
   createCircuitDraft,
   type TE1CircuitDraft,
@@ -236,6 +238,14 @@ export function StepForm({ step, draft, onChange }: Props) {
 
   if (step === "compliance") {
     return <CompliancePanel draft={draft} />;
+  }
+
+  if (step === "review") {
+    return <ReviewForm draft={draft} onChange={onChange} />;
+  }
+
+  if (step === "export") {
+    return <ExportPanel draft={draft} />;
   }
 
   return (
