@@ -1,0 +1,8 @@
+<!-- Generated reference placeholder.
+Run renderCasaGoyoA2Svg() from src/drawing/casa-goyo-sheet.ts to regenerate.
+The repository intentionally stores only deterministic vector/text artifacts here. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="594mm" height="420mm" viewBox="0 0 594 420">
+  <rect x="0" y="0" width="594" height="420" fill="#fff"/>
+  <text x="297" y="25" text-anchor="middle" font-family="Arial" font-size="8">ORBI TE Studio — Casa Goyo A2 reference</text>
+  <text x="297" y="40" text-anchor="middle" font-family="Arial" font-size="4">Regenerate from src/drawing/casa-goyo-sheet.ts</text>
+</svg>
