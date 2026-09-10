@@ -36,7 +36,7 @@ export function buildReviewGateSummary(
   const boardComplete =
     Boolean(draft.board.name.trim()) &&
     positive(draft.board.totalWays) &&
-    Boolean(draft.board.frontalPhotoLabel.trim()) &&
+    Boolean(draft.board.frontalEvidenceId.trim()) &&
     positive(draft.board.mainPoles) &&
     positive(draft.board.mainCurrentA) &&
     positive(draft.board.differentialPoles) &&
@@ -67,13 +67,13 @@ export function buildReviewGateSummary(
     draft.measurements.every(
       (measurement) =>
         positive(measurement.value) &&
-        Boolean(measurement.evidenceLabel.trim()) &&
+        Boolean(measurement.evidenceId.trim()) &&
         measurement.verified
     );
 
   const planComplete =
     Boolean(draft.plan.sourceType) &&
-    Boolean(draft.plan.sourceLabel.trim()) &&
+    Boolean(draft.plan.sourceEvidenceId.trim()) &&
     draft.plan.hasDimensions &&
     draft.plan.reviewed;
 
