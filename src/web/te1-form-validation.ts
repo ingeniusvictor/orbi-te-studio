@@ -1,5 +1,5 @@
 import type { TE1WizardStep } from "../wizard/te1-wizard.js";
-import type { TE1FormDraft } from "./te1-form-model.js";
+import type { TE1CircuitDraft, TE1FormDraft } from "./te1-form-model.js";
 
 export interface FormValidationResult {
   valid: boolean;
@@ -8,6 +8,15 @@ export interface FormValidationResult {
 
 function required(value: string, label: string, issues: string[]): void {
   if (!value.trim()) issues.push(`${label} es obligatorio.`);
+}
+
+function positiveNumber(value: string): boolean {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0;
+}
+
+function circuitName(circuit: TE1CircuitDraft): string {
+  return `Circuito ${circuit.number || "?"}`;
 }
 
 export function validateFormStep(
@@ -53,6 +62,79 @@ export function validateFormStep(
       );
       break;
     }
+
+    case "circuits": {
+      if (draft.circuits.length === 0) {
+        issues.push("Debe existir al menos un circuito.");
+        break;
+      }
+
+      const numbers = new Set<number>();
+      for (const circuit of draft.circuits) {
+        const number = Number(circuit.number);
+        if (!Number.isInteger(number) || number <= 0) {
+          issues.push(`${circuitName(circuit)}: número inválido.`);
+        } else if (numbers.has(number)) {
+          issues.push(`Circuito ${number}: número duplicado.`);
+        } else {
+          numbers.add(number);
+        }
+
+        required(
+          circuit.description,
+          `${circuitName(circuit)}: descripción`,
+          issues
+        );
+
+        if (!positiveNumber(circuit.breakerA)) {
+          issues.push(`${circuitName(circuit)}: calibre de protección inválido.`);
+        }
+
+        if (
+          circuit.breakingCapacityKA.trim() &&
+          !positiveNumber(circuit.breakingCapacityKA)
+        ) {
+          issues.push(`${circuitName(circuit)}: poder de corte inválido.`);
+        }
+      }
+      break;
+    }
+
+    case "loads":
+      for (const circuit of draft.circuits) {
+        if (!positiveNumber(circuit.installedPowerW)) {
+          issues.push(`${circuitName(circuit)}: potencia instalada pendiente o inválida.`);
+        }
+        if (
+          circuit.demandedPowerW.trim() &&
+          !positiveNumber(circuit.demandedPowerW)
+        ) {
+          issues.push(`${circuitName(circuit)}: potencia demandada inválida.`);
+        }
+      }
+      break;
+
+    case "conductors":
+      for (const circuit of draft.circuits) {
+        if (!positiveNumber(circuit.conductorPhaseMm2)) {
+          issues.push(`${circuitName(circuit)}: sección de fase pendiente o inválida.`);
+        }
+        if (!positiveNumber(circuit.conductorNeutralMm2)) {
+          issues.push(`${circuitName(circuit)}: sección de neutro pendiente o inválida.`);
+        }
+        if (!positiveNumber(circuit.conductorPeMm2)) {
+          issues.push(`${circuitName(circuit)}: sección PE pendiente o inválida.`);
+        }
+        required(
+          circuit.installationMethod,
+          `${circuitName(circuit)}: método de instalación`,
+          issues
+        );
+        if (!circuit.conductorVerified) {
+          issues.push(`${circuitName(circuit)}: conductor aún no verificado.`);
+        }
+      }
+      break;
 
     default:
       break;
