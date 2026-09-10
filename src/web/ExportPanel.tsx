@@ -7,6 +7,11 @@ import {
 } from "./generation-api.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 import { useEvidenceAudit } from "./use-evidence-audit.js";
+import { listEvidence } from "./evidence-store.js";
+import {
+  buildEvidenceManifest,
+  evidenceManifestToJson
+} from "./evidence-manifest.js";
 
 export function ExportPanel({
   draft,
@@ -45,7 +50,20 @@ export function ExportPanel({
         return;
       }
 
-      setGenerated(result.artifacts);
+      const localEvidence = await listEvidence(projectId);
+      const evidenceManifest = buildEvidenceManifest(
+        projectId,
+        draft,
+        localEvidence
+      );
+      const evidenceManifestArtifact: ApiGeneratedArtifact = {
+        filename: `${projectId}_TE1_evidence_manifest.json`,
+        mimeType: "application/json",
+        encoding: "utf8",
+        content: evidenceManifestToJson(evidenceManifest)
+      };
+
+      setGenerated([...result.artifacts, evidenceManifestArtifact]);
       setState("success");
     } catch (error) {
       setIssues([
@@ -136,7 +154,8 @@ export function ExportPanel({
           <strong>Paquete generado por el servicio local.</strong>
           <span>
             Descarga cada artefacto para revisarlo antes de cualquier uso
-            documental.
+            documental. El manifest de evidencia registra las huellas SHA-256
+            de los archivos vinculados.
           </span>
 
           <div className="generated-files">
