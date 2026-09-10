@@ -108,6 +108,7 @@ export function EvidenceManager({ projectId }: { projectId: string }) {
             <option value="board-legend">Tablero · leyenda</option>
             <option value="location-sketch">Croquis de ubicación</option>
             <option value="architectural-plan">Plano arquitectónico</option>
+            <option value="measured-sketch">Croquis medido en terreno</option>
             <option value="legacy-plan">Plano anterior</option>
             <option value="measurement">Medición / instrumento</option>
             <option value="service">Empalme / medidor</option>
@@ -191,6 +192,7 @@ function categoryLabel(category: EvidenceCategory): string {
     "board-legend": "Leyenda tablero",
     "location-sketch": "Croquis ubicación",
     "architectural-plan": "Plano arquitectónico",
+    "measured-sketch": "Croquis medido en terreno",
     "legacy-plan": "Plano anterior",
     measurement: "Medición",
     service: "Empalme / medidor",
