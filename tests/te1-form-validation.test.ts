@@ -38,8 +38,19 @@ describe("TE1 editable wizard form validation", () => {
     expect(result.issues).toContain("El croquis de ubicación aún no está verificado.");
   });
 
-  it("accepts the observed Casa Goyo board header", () => {
+  it("keeps Casa Goyo board blocked until the observed photo is linked", () => {
     const draft = createCasaGoyoDemoDraft();
+    const result = validateFormStep("board", draft);
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContain(
+      "Vínculo a evidencia fotográfica frontal del tablero es obligatorio."
+    );
+  });
+
+  it("accepts Casa Goyo board after the frontal evidence is linked", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.board.frontalEvidenceId = "EV-BOARD-1";
+    draft.board.frontalPhotoLabel = "tablero-casa-goyo.jpg";
     expect(validateFormStep("board", draft).valid).toBe(true);
   });
 
