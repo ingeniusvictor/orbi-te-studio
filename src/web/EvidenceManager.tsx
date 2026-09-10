@@ -10,6 +10,7 @@ import {
   type EvidenceCategory,
   type LocalEvidenceMetadata
 } from "./evidence-types.js";
+import { shortSha256 } from "./evidence-hash.js";
 
 export function EvidenceManager({ projectId }: { projectId: string }) {
   const [items, setItems] = useState<LocalEvidenceMetadata[]>([]);
@@ -155,6 +156,7 @@ export function EvidenceManager({ projectId }: { projectId: string }) {
                 <small>
                   {categoryLabel(item.category)} · {formatEvidenceSize(item.sizeBytes)}
                 </small>
+                <small>SHA-256: {shortSha256(item.sha256)}</small>
                 {item.notes && <span>{item.notes}</span>}
               </div>
               <div className="evidence-actions">
