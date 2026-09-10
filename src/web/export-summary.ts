@@ -28,7 +28,7 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
   );
   const planReady =
     Boolean(draft.plan.sourceType) &&
-    Boolean(draft.plan.sourceLabel.trim()) &&
+    Boolean(draft.plan.sourceEvidenceId.trim()) &&
     draft.plan.hasDimensions &&
     draft.plan.reviewed;
 
@@ -73,10 +73,10 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
       id: "image-report",
       label: "Informe fotográfico",
       status:
-        approvedForPreparation && Boolean(draft.board.frontalPhotoLabel.trim())
+        approvedForPreparation && Boolean(draft.board.frontalEvidenceId.trim())
           ? "ready-to-generate"
           : "pending",
-      ...(!draft.board.frontalPhotoLabel.trim()
+      ...(!draft.board.frontalEvidenceId.trim()
         ? { reason: "Evidencia fotográfica pendiente." }
         : {})
     },
