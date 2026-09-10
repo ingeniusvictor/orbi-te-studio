@@ -14,7 +14,7 @@ Status: ACTIVE
 - [x] TE1-REF-001 — Departamento Víctor
 - [x] TE1-REF-002 — Casa Goyo, Osorno
 - [x] Structured Casa Goyo source evidence manifest
-- [ ] Expected drawing outputs stored as reproducible fixtures
+- [x] Initial deterministic vector example
 - [x] Initial cross-check engine: board vs project
 - [ ] Extend reconciliation to legacy unilinear vs board vs field
 
@@ -27,11 +27,18 @@ Status: ACTIVE
 
 ## 0.4 Drawing engine
 - [ ] Panel front-view renderer
-- [ ] Unilinear renderer
+- [x] Unilinear data model
+- [x] Unilinear SVG renderer v0.1
 - [x] Load schedule data model
-- [ ] A2/A1/A0 PDF layout renderer
-- [x] RIC N°18 title-block data model
+- [x] Load schedule SVG renderer v0.1
+- [x] A0/A1/A2 normalized sheet geometry
+- [x] A2 SVG composition
+- [x] RIC-style title-block data model
+- [x] RIC-style title-block SVG renderer v0.1
+- [ ] Exact RIC N°18 title-block geometry certification
 - [ ] Location sketch renderer
+- [ ] Electrical floor-plan renderer
+- [ ] Vector SVG -> PDF export
 
 ## 0.5 Field intake
 - [x] Structured intake model
@@ -50,6 +57,13 @@ Status: ACTIVE
 - [x] Export readiness status
 - [ ] Reviewer checklist UI
 
+## 0.7 SEC preparation
+- [x] TE1 project manifest v0.1
+- [x] Explicit PENDING attachments and powers
+- [ ] Map manifest fields to current E-Declarador schema
+- [ ] Attachment packaging
+- [ ] Browser-assistance boundary specification
+
 ## Exit criteria
 
-Phase 0 closes when the software can ingest structured data for both reference projects and reproducibly generate a validated project model without inventing missing technical data.
+Phase 0 closes when the software can ingest structured data for both reference projects and reproducibly generate a validated project model and vector drawing artifacts without inventing missing technical data.
