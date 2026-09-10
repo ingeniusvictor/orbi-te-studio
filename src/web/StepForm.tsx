@@ -139,6 +139,29 @@ export function StepForm({ step, draft, onChange }: Props) {
         <Field label="UTM">
           <input value={draft.location.utm} onChange={updateLocation("utm")} placeholder="Huso / Este / Norte" />
         </Field>
+        <Field label="Evidencia croquis de ubicación" wide>
+          <input
+            value={draft.location.locationSketchEvidenceLabel}
+            onChange={updateLocation("locationSketchEvidenceLabel")}
+            placeholder="Ej. captura/croquis con calles o referencia pública"
+          />
+        </Field>
+        <label className="verify-check wide">
+          <input
+            type="checkbox"
+            checked={draft.location.locationSketchVerified}
+            onChange={(event) =>
+              onChange({
+                ...draft,
+                location: {
+                  ...draft.location,
+                  locationSketchVerified: event.target.checked
+                }
+              })
+            }
+          />
+          <span>Croquis de ubicación verificado contra evidencia real</span>
+        </label>
       </div>
     );
   }
