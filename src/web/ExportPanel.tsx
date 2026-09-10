@@ -12,6 +12,7 @@ import {
   buildEvidenceManifest,
   evidenceManifestToJson
 } from "./evidence-manifest.js";
+import { buildEvidenceVerificationUploads } from "./evidence-upload-payload.js";
 
 export function ExportPanel({
   draft,
@@ -40,7 +41,20 @@ export function ExportPanel({
         return;
       }
 
-      const result = await requestTE1Package(draft, projectId);
+      const localEvidence = await listEvidence(projectId);
+      const evidenceManifest = buildEvidenceManifest(
+        projectId,
+        draft,
+        localEvidence
+      );
+      const evidenceUploads =
+        await buildEvidenceVerificationUploads(evidenceManifest);
+
+      const result = await requestTE1Package(
+        draft,
+        projectId,
+        evidenceUploads
+      );
 
       if (!result.ok) {
         setIssues(
@@ -50,12 +64,6 @@ export function ExportPanel({
         return;
       }
 
-      const localEvidence = await listEvidence(projectId);
-      const evidenceManifest = buildEvidenceManifest(
-        projectId,
-        draft,
-        localEvidence
-      );
       const evidenceManifestArtifact: ApiGeneratedArtifact = {
         filename: `${projectId}_TE1_evidence_manifest.json`,
         mimeType: "application/json",
