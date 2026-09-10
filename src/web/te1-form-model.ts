@@ -75,6 +75,12 @@ export interface TE1FormDraft {
   circuits: TE1CircuitDraft[];
   measurements: TE1MeasurementDraft[];
   plan: TE1PlanDraft;
+  review: {
+    reviewerName: string;
+    notes: string;
+    approved: boolean;
+    approvedAt: string;
+  };
 }
 
 export function createCircuitDraft(number: number): TE1CircuitDraft {
@@ -191,7 +197,13 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
     },
     circuits: [createCircuitDraft(1)],
     measurements: createMeasurementDrafts(),
-    plan: emptyPlan()
+    plan: emptyPlan(),
+    review: {
+      reviewerName: "",
+      notes: "",
+      approved: false,
+      approvedAt: ""
+    }
   };
 }
 
@@ -244,6 +256,12 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       }
     ],
     measurements: createMeasurementDrafts(),
-    plan: emptyPlan()
+    plan: emptyPlan(),
+    review: {
+      reviewerName: "",
+      notes: "",
+      approved: false,
+      approvedAt: ""
+    }
   };
 }
