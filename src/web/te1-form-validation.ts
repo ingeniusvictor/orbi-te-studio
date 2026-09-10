@@ -1,5 +1,6 @@
 import type { TE1WizardStep } from "../wizard/te1-wizard.js";
 import type { TE1CircuitDraft, TE1FormDraft } from "./te1-form-model.js";
+import { buildComplianceSummary } from "./compliance-summary.js";
 
 export interface FormValidationResult {
   valid: boolean;
@@ -164,6 +165,19 @@ export function validateFormStep(
         issues.push("La fuente del plano aún no cuenta con revisión profesional.");
       }
       break;
+
+    case "compliance": {
+      const compliance = buildComplianceSummary(draft);
+      for (const item of compliance.items) {
+        if (item.status === "blocker") {
+          issues.push(`${item.code}: ${item.message}`);
+        }
+        if (item.status === "not-verifiable") {
+          issues.push(`${item.code}: regla no verificable con los datos actuales.`);
+        }
+      }
+      break;
+    }
 
     default:
       break;
