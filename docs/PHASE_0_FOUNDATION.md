@@ -8,41 +8,48 @@ Status: ACTIVE
 - [x] TypeScript baseline
 - [x] Deterministic electrical helper layer
 - [x] Conservative validation model
+- [x] CI workflow
 
 ## 0.2 Reference cases
-- [ ] TE1-REF-001 — Departamento Víctor
+- [x] TE1-REF-001 — Departamento Víctor
 - [x] TE1-REF-002 — Casa Goyo, Osorno
-- [ ] Store source evidence manifest
-- [ ] Expected drawing outputs
-- [ ] Cross-check matrix: board vs unilinear vs field
+- [x] Structured Casa Goyo source evidence manifest
+- [ ] Expected drawing outputs stored as reproducible fixtures
+- [x] Initial cross-check engine: board vs project
+- [ ] Extend reconciliation to legacy unilinear vs board vs field
 
 ## 0.3 RIC knowledge base
-- [ ] Obtain official current SEC sources
-- [ ] Define rule schema
-- [ ] Encode only verified rules with exact source metadata
-- [ ] Add version/effective-date handling
-- [ ] Regression tests per rule
+- [x] Define rule schema
+- [x] Encode initial verified RIC N°10 rules with source metadata
+- [ ] Expand authoritative current SEC sources
+- [ ] Add version/effective-date handling to rule selection
+- [ ] Regression tests per added rule
 
 ## 0.4 Drawing engine
-- [ ] Panel front-view model
-- [ ] Unilinear data model
-- [ ] Load schedule model
-- [ ] A2/A1/A0 PDF layout
-- [ ] RIC N°18 title block
-- [ ] Location sketch placeholder
+- [ ] Panel front-view renderer
+- [ ] Unilinear renderer
+- [x] Load schedule data model
+- [ ] A2/A1/A0 PDF layout renderer
+- [x] RIC N°18 title-block data model
+- [ ] Location sketch renderer
 
 ## 0.5 Field intake
-- [ ] Project wizard
-- [ ] Mandatory evidence checklist
-- [ ] Confidence + missing-data workflow
+- [x] Structured intake model
+- [x] Minimum evidence checklist
+- [x] Confidence + missing-data vocabulary
+- [x] Casa Goyo field intake fixture
+- [ ] Project wizard UI
+- [ ] Photo-quality gate
 - [ ] Retake-photo request states
+- [ ] Measurement validation states
 
 ## 0.6 Professional QA
-- [ ] Blocker rules
+- [x] Blocker/warning finding model
+- [x] Board reconciliation findings
 - [ ] Reviewer checklist
 - [ ] Approval audit record
 - [ ] Export readiness status
 
 ## Exit criteria
 
-Phase 0 closes when the software can ingest structured data for the two reference projects and reproducibly generate a validated project model without inventing missing technical data.
+Phase 0 closes when the software can ingest structured data for both reference projects and reproducibly generate a validated project model without inventing missing technical data.
