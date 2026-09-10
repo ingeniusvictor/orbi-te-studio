@@ -10,7 +10,13 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm test"
   },
+  "dependencies": {
+    "pdfkit": "^0.17.2",
+    "svg-to-pdfkit": "^0.1.8"
+  },
   "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/pdfkit": "^0.17.3",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
