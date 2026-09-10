@@ -90,7 +90,7 @@ describe("versioned TE1 project storage", () => {
 
   it("creates deterministic time-based ids when time is supplied", () => {
     expect(createProjectId(new Date("2026-09-10T20:30:45.000Z"))).toBe(
-      "TE1-20260910203045"
+      "TE1-20260910203045000"
     );
   });
 });
