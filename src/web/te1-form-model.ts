@@ -15,6 +15,33 @@ export interface TE1CircuitDraft {
   conductorVerified: boolean;
 }
 
+export type MeasurementDraftKind =
+  | "supply-voltage"
+  | "insulation-resistance"
+  | "pe-continuity"
+  | "earthing-resistance"
+  | "rcd-test";
+
+export interface TE1MeasurementDraft {
+  id: string;
+  kind: MeasurementDraftKind;
+  value: string;
+  unit: string;
+  evidenceLabel: string;
+  verified: boolean;
+  notes: string;
+}
+
+export interface TE1PlanDraft {
+  sourceType: "architectural-plan" | "measured-sketch" | "legacy-plan" | "";
+  sourceLabel: string;
+  scale: string;
+  hasElectricalPoints: boolean;
+  hasDimensions: boolean;
+  reviewed: boolean;
+  notes: string;
+}
+
 export interface TE1FormDraft {
   project: {
     name: string;
@@ -40,6 +67,8 @@ export interface TE1FormDraft {
     legendPhotoLabel: string;
   };
   circuits: TE1CircuitDraft[];
+  measurements: TE1MeasurementDraft[];
+  plan: TE1PlanDraft;
 }
 
 export function createCircuitDraft(number: number): TE1CircuitDraft {
@@ -58,6 +87,68 @@ export function createCircuitDraft(number: number): TE1CircuitDraft {
     conductorMaterial: "Cu",
     installationMethod: "",
     conductorVerified: false
+  };
+}
+
+export function createMeasurementDrafts(): TE1MeasurementDraft[] {
+  return [
+    {
+      id: "M-VOLTAGE",
+      kind: "supply-voltage",
+      value: "",
+      unit: "V",
+      evidenceLabel: "",
+      verified: false,
+      notes: ""
+    },
+    {
+      id: "M-INSULATION",
+      kind: "insulation-resistance",
+      value: "",
+      unit: "MΩ",
+      evidenceLabel: "",
+      verified: false,
+      notes: ""
+    },
+    {
+      id: "M-PE",
+      kind: "pe-continuity",
+      value: "",
+      unit: "Ω",
+      evidenceLabel: "",
+      verified: false,
+      notes: ""
+    },
+    {
+      id: "M-EARTH",
+      kind: "earthing-resistance",
+      value: "",
+      unit: "Ω",
+      evidenceLabel: "",
+      verified: false,
+      notes: ""
+    },
+    {
+      id: "M-RCD",
+      kind: "rcd-test",
+      value: "",
+      unit: "ms",
+      evidenceLabel: "",
+      verified: false,
+      notes: ""
+    }
+  ];
+}
+
+function emptyPlan(): TE1PlanDraft {
+  return {
+    sourceType: "",
+    sourceLabel: "",
+    scale: "",
+    hasElectricalPoints: false,
+    hasDimensions: false,
+    reviewed: false,
+    notes: ""
   };
 }
 
@@ -86,7 +177,9 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       frontalPhotoLabel: "",
       legendPhotoLabel: ""
     },
-    circuits: [createCircuitDraft(1)]
+    circuits: [createCircuitDraft(1)],
+    measurements: createMeasurementDrafts(),
+    plan: emptyPlan()
   };
 }
 
@@ -131,6 +224,8 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
         description: "Enchufes cocina - logia",
         breakerA: "16"
       }
-    ]
+    ],
+    measurements: createMeasurementDrafts(),
+    plan: emptyPlan()
   };
 }
