@@ -97,4 +97,23 @@ describe("TE1 editable wizard form validation", () => {
     const draft = createCasaGoyoDemoDraft();
     expect(validateFormStep("plans", draft).valid).toBe(false);
   });
+
+  it("shows Casa Goyo current RIC blocker from single-pole main protection", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.location.address = "Dirección de prueba";
+    draft.location.wgs84 = "-40.0,-73.0";
+    draft.plan.sourceType = "measured-sketch";
+    draft.plan.sourceLabel = "croquis.pdf";
+    draft.plan.hasDimensions = true;
+    draft.plan.reviewed = true;
+
+    const result = validateFormStep("compliance", draft);
+
+    expect(result.valid).toBe(false);
+    expect(
+      result.issues.some((issue) =>
+        issue.includes("RIC10-5.1.3.3-GENERAL-OMNIPOLAR")
+      )
+    ).toBe(true);
+  });
 });
