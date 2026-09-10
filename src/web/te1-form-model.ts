@@ -243,6 +243,7 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       region: "Los Lagos",
       wgs84: "",
       utm: "",
+      locationSketchEvidenceId: "",
       locationSketchEvidenceLabel: "",
       locationSketchVerified: false
     },
