@@ -22,6 +22,8 @@ import { validateFormStep } from "./te1-form-validation.js";
 import { DrawingPreview } from "./DrawingPreview.js";
 import { createProjectId } from "./project-storage.js";
 import { useProjectStorage } from "./use-project-storage.js";
+import { EvidenceManager } from "./EvidenceManager.js";
+import { deleteProjectEvidence } from "./evidence-store.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -69,8 +71,13 @@ export function App() {
     setSaveNotice("Proyecto guardado localmente en este navegador.");
   };
 
-  const deleteProject = (projectId: string) => {
+  const deleteProject = async (projectId: string) => {
     projectStorage.remove(projectId);
+    try {
+      await deleteProjectEvidence(projectId);
+    } catch {
+      // Project metadata deletion remains valid even if binary cleanup is unavailable.
+    }
   };
 
   if (mode === "home") {
@@ -143,7 +150,7 @@ export function App() {
                     </button>
                     <button
                       className="danger-link saved-delete"
-                      onClick={() => deleteProject(project.projectId)}
+                      onClick={() => void deleteProject(project.projectId)}
                     >
                       Eliminar
                     </button>
@@ -282,6 +289,8 @@ export function App() {
           </div>
 
           <DrawingPreview draft={draft} projectId={wizard.projectId} />
+
+          <EvidenceManager projectId={wizard.projectId} />
 
           <div className="split-grid">
               <div className="section-card">
