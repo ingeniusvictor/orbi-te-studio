@@ -9,6 +9,7 @@ import { renderPanelFrontPanel } from "./render-panel-front-svg.js";
 import { renderRic18Footer } from "./render-ric18-footer.js";
 import { renderUnilinearPanel } from "./render-unilinear-svg.js";
 import { getRic18SheetGeometry } from "./ric18-layout.js";
+import { renderSymbolLegendPanel } from "./symbol-legend.js";
 import { esc, rect, text } from "./svg-primitives.js";
 
 const style = `
@@ -65,6 +66,8 @@ export function renderCasaGoyoRic18A2Svg(): string {
   )}</g>`);
 
   body.push(`<g transform="translate(${x + 340},${y + 178}) scale(0.80)">${renderConnectionDetailPanel()}</g>`);
+
+  body.push(`<g transform="translate(${x + 340},${y + 238}) scale(1.05)">${renderSymbolLegendPanel()}</g>`);
 
   body.push(text(
     x + 5,
