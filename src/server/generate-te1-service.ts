@@ -73,7 +73,7 @@ export async function generateTE1FromDraft(
       : {}),
     ...(draft.plan.scale.trim() ? { scale: draft.plan.scale.trim() } : {}),
     locationSketchVerified:
-      Boolean(draft.location.locationSketchEvidenceLabel.trim()) &&
+      Boolean(draft.location.locationSketchEvidenceId.trim()) &&
       draft.location.locationSketchVerified
   });
 
