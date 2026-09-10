@@ -51,8 +51,8 @@ export function validateFormStep(
         issues.push("Debe ingresar georreferencia WGS84 o UTM.");
       }
       required(
-        draft.location.locationSketchEvidenceLabel,
-        "Evidencia del croquis de ubicación",
+        draft.location.locationSketchEvidenceId,
+        "Vínculo a evidencia del croquis de ubicación",
         issues
       );
       if (!draft.location.locationSketchVerified) {
@@ -67,8 +67,8 @@ export function validateFormStep(
         issues.push("La cantidad de módulos del tablero debe ser un entero mayor que cero.");
       }
       required(
-        draft.board.frontalPhotoLabel,
-        "Evidencia fotográfica frontal del tablero",
+        draft.board.frontalEvidenceId,
+        "Vínculo a evidencia fotográfica frontal del tablero",
         issues
       );
       if (!positiveNumber(draft.board.mainPoles)) {
@@ -168,8 +168,8 @@ export function validateFormStep(
           issues.push(`${measurement.kind}: valor pendiente o inválido.`);
         }
         required(
-          measurement.evidenceLabel,
-          `${measurement.kind}: evidencia`,
+          measurement.evidenceId,
+          `${measurement.kind}: vínculo de evidencia`,
           issues
         );
         if (!measurement.verified) {
@@ -182,7 +182,7 @@ export function validateFormStep(
       if (!draft.plan.sourceType) {
         issues.push("Debe seleccionar una fuente para la planta eléctrica.");
       }
-      required(draft.plan.sourceLabel, "Archivo o evidencia del plano", issues);
+      required(draft.plan.sourceEvidenceId, "Vínculo a evidencia del plano", issues);
       if (!draft.plan.hasDimensions) {
         issues.push("La fuente debe contener dimensiones suficientes.");
       }
