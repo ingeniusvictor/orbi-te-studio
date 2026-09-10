@@ -6,7 +6,7 @@ export function renderTitleBlock(
   width: number,
   height: number
 ): string {
-  const rows = [
+  const rows: Array<[string, string]> = [
     ["Proyecto", titleBlock.project],
     ["Propietario", titleBlock.owner ?? "POR DEFINIR"],
     ["RUT", titleBlock.ownerRut ?? "POR DEFINIR"],
@@ -27,12 +27,12 @@ export function renderTitleBlock(
   content.push(text(width / 2, 5, "PROYECTO ELÉCTRICO - INSTALACIÓN INTERIOR", "label", "middle"));
   content.push(line(0, 8, width, 8, "med"));
 
-  rows.forEach((row, index) => {
+  rows.forEach(([label, value], index) => {
     const y = 8 + index * rowHeight;
     content.push(line(0, y + rowHeight, width, y + rowHeight));
     content.push(line(labelWidth, y, labelWidth, y + rowHeight));
-    content.push(text(2, y + 4.2, row[0], "small"));
-    content.push(text(labelWidth + 2, y + 4.2, row[1], "small"));
+    content.push(text(2, y + 4.2, label, "small"));
+    content.push(text(labelWidth + 2, y + 4.2, value, "small"));
   });
 
   const footerY = 8 + rows.length * rowHeight;
