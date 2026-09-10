@@ -11,6 +11,7 @@ import { casaGoyoFieldIntake } from "../reference/casa-goyo-intake.js";
 import { buildMinimumFieldChecklist } from "../field/checklist.js";
 import { validateTE1 } from "../engine/validate-te1.js";
 import { buildProjectManifest } from "../export/project-manifest.js";
+import { draftToTE1Project } from "./draft-to-project.js";
 import { StepForm } from "./StepForm.js";
 import {
   createCasaGoyoDemoDraft,
@@ -34,8 +35,12 @@ export function App() {
     () => buildMinimumFieldChecklist(casaGoyoFieldIntake),
     []
   );
-  const validation = useMemo(() => validateTE1(casaGoyoReference), []);
-  const manifest = useMemo(() => buildProjectManifest(casaGoyoReference), []);
+  const liveProject = useMemo(
+    () => draftToTE1Project(draft, wizard.projectId),
+    [draft, wizard.projectId]
+  );
+  const validation = useMemo(() => validateTE1(liveProject), [liveProject]);
+  const manifest = useMemo(() => buildProjectManifest(liveProject), [liveProject]);
 
   const startProject = (demo: boolean) => {
     setDraft(demo ? createCasaGoyoDemoDraft() : createEmptyTE1FormDraft());
@@ -193,11 +198,11 @@ export function App() {
             <Info label="Comuna" value={draft.location.commune || "PENDIENTE"} />
             <Info label="Región" value={draft.location.region || "PENDIENTE"} />
             <Info label="Tablero" value={draft.board.name || "PENDIENTE"} />
+            <Info label="Circuitos" value={String(liveProject.circuits.length)} />
             <Info label="Potencia instalada" value={String(manifest.totals.installedPowerW)} />
           </div>
 
-          {wizard.projectId === casaGoyoReference.id && (
-            <div className="split-grid">
+          <div className="split-grid">
               <div className="section-card">
                 <p className="eyebrow">EVIDENCIA DE TERRENO</p>
                 <h3>Checklist mínimo</h3>
@@ -231,7 +236,6 @@ export function App() {
                 </div>
               </div>
             </div>
-          )}
         </section>
       </div>
     </main>
