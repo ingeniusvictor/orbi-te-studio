@@ -128,7 +128,7 @@ export function createProjectId(now = new Date()): string {
   const stamp = now
     .toISOString()
     .replace(/[-:TZ.]/g, "")
-    .slice(0, 14);
+    .slice(0, 17);
   return `TE1-${stamp}`;
 }
 
