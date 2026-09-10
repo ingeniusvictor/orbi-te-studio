@@ -26,14 +26,19 @@ export type GeneratePackageResponse =
 
 export async function requestTE1Package(
   draft: TE1FormDraft,
-  projectId: string
+  projectId: string,
+  evidenceUploads: EvidenceVerificationUpload[]
 ): Promise<GeneratePackageResponse> {
   const response = await fetch("/api/te1/generate", {
     method: "POST",
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ draft, projectId })
+    body: JSON.stringify({
+      draft,
+      projectId,
+      evidenceUploads
+    })
   });
 
   const body = (await response.json()) as GeneratePackageResponse;
