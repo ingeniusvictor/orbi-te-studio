@@ -2,6 +2,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import type { TE1WizardStep } from "../wizard/te1-wizard.js";
 import { MeasurementForm } from "./MeasurementForm.js";
 import { PlanForm } from "./PlanForm.js";
+import { CompliancePanel } from "./CompliancePanel.js";
 import {
   createCircuitDraft,
   type TE1CircuitDraft,
@@ -155,6 +156,36 @@ export function StepForm({ step, draft, onChange }: Props) {
         <Field label="Foto leyenda / referencia" wide>
           <input value={draft.board.legendPhotoLabel} onChange={updateBoard("legendPhotoLabel")} placeholder="Opcional" />
         </Field>
+
+        <div className="subsection wide">
+          <strong>Protección general</strong>
+          <div className="form-grid compact-grid">
+            <Field label="Polos">
+              <input value={draft.board.mainPoles} onChange={updateBoard("mainPoles")} inputMode="numeric" />
+            </Field>
+            <Field label="Corriente nominal (A)">
+              <input value={draft.board.mainCurrentA} onChange={updateBoard("mainCurrentA")} inputMode="decimal" />
+            </Field>
+            <Field label="Poder de corte (kA)">
+              <input value={draft.board.mainBreakingCapacityKA} onChange={updateBoard("mainBreakingCapacityKA")} inputMode="decimal" />
+            </Field>
+          </div>
+        </div>
+
+        <div className="subsection wide">
+          <strong>Protección diferencial</strong>
+          <div className="form-grid compact-grid">
+            <Field label="Polos">
+              <input value={draft.board.differentialPoles} onChange={updateBoard("differentialPoles")} inputMode="numeric" />
+            </Field>
+            <Field label="Corriente nominal (A)">
+              <input value={draft.board.differentialCurrentA} onChange={updateBoard("differentialCurrentA")} inputMode="decimal" />
+            </Field>
+            <Field label="Sensibilidad IΔn (mA)">
+              <input value={draft.board.differentialResidualMA} onChange={updateBoard("differentialResidualMA")} inputMode="decimal" />
+            </Field>
+          </div>
+        </div>
       </div>
     );
   }
@@ -201,6 +232,10 @@ export function StepForm({ step, draft, onChange }: Props) {
 
   if (step === "plans") {
     return <PlanForm draft={draft} onChange={onChange} />;
+  }
+
+  if (step === "compliance") {
+    return <CompliancePanel draft={draft} />;
   }
 
   return (
