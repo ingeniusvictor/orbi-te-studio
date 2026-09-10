@@ -50,6 +50,14 @@ export function validateFormStep(
       if (!draft.location.wgs84.trim() && !draft.location.utm.trim()) {
         issues.push("Debe ingresar georreferencia WGS84 o UTM.");
       }
+      required(
+        draft.location.locationSketchEvidenceLabel,
+        "Evidencia del croquis de ubicación",
+        issues
+      );
+      if (!draft.location.locationSketchVerified) {
+        issues.push("El croquis de ubicación aún no está verificado.");
+      }
       break;
 
     case "board": {
