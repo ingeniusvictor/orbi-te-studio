@@ -38,17 +38,17 @@ Status: ACTIVE
 - [x] Minimum evidence checklist
 - [x] Confidence + missing-data vocabulary
 - [x] Casa Goyo field intake fixture
+- [x] Photo-quality gate model
+- [x] Retake-photo request states
 - [ ] Project wizard UI
-- [ ] Photo-quality gate
-- [ ] Retake-photo request states
 - [ ] Measurement validation states
 
 ## 0.6 Professional QA
 - [x] Blocker/warning finding model
 - [x] Board reconciliation findings
-- [ ] Reviewer checklist
-- [ ] Approval audit record
-- [ ] Export readiness status
+- [x] Approval audit record
+- [x] Export readiness status
+- [ ] Reviewer checklist UI
 
 ## Exit criteria
 
