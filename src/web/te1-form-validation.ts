@@ -1,6 +1,8 @@
 import type { TE1WizardStep } from "../wizard/te1-wizard.js";
 import type { TE1CircuitDraft, TE1FormDraft } from "./te1-form-model.js";
 import { buildComplianceSummary } from "./compliance-summary.js";
+import { buildReviewGateSummary } from "./review-summary.js";
+import { buildWebExportSummary } from "./export-summary.js";
 
 export interface FormValidationResult {
   valid: boolean;
@@ -175,6 +177,37 @@ export function validateFormStep(
         if (item.status === "not-verifiable") {
           issues.push(`${item.code}: regla no verificable con los datos actuales.`);
         }
+      }
+      break;
+    }
+
+    case "review": {
+      const review = buildReviewGateSummary(draft);
+      if (!review.readyForApproval) {
+        for (const item of review.items.filter((item) => !item.completed)) {
+          issues.push(`${item.label}: pendiente.`);
+        }
+      }
+      if (!draft.review.reviewerName.trim()) {
+        issues.push("Debe identificar al profesional revisor.");
+      }
+      if (!draft.review.approved) {
+        issues.push("El proyecto aún no tiene aprobación profesional explícita.");
+      }
+      break;
+    }
+
+    case "export": {
+      const exportSummary = buildWebExportSummary(draft);
+      if (!exportSummary.approvedForPreparation) {
+        issues.push("El proyecto aún no está aprobado para preparación de exportación.");
+      }
+      if (
+        exportSummary.documents.some(
+          (document) => document.status !== "ready-to-generate"
+        )
+      ) {
+        issues.push("El paquete TE1 todavía contiene documentos pendientes.");
       }
       break;
     }
