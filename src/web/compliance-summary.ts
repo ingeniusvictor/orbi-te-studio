@@ -60,7 +60,7 @@ export function buildComplianceSummary(
       draft.location.wgs84.trim() || draft.location.utm.trim()
     ),
     hasLocationSketch:
-      Boolean(draft.location.locationSketchEvidenceLabel.trim()) &&
+      Boolean(draft.location.locationSketchEvidenceId.trim()) &&
       draft.location.locationSketchVerified,
     destination: draft.project.destination,
     sheetNumber: 1,
