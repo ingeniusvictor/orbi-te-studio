@@ -14,7 +14,7 @@ export function renderDraftA2Svg(
       locationSketchVerified:
         Boolean(draft.location.address.trim()) &&
         Boolean(draft.location.wgs84.trim() || draft.location.utm.trim()) &&
-        Boolean(draft.location.locationSketchEvidenceLabel.trim()) &&
+        Boolean(draft.location.locationSketchEvidenceId.trim()) &&
         draft.location.locationSketchVerified
     }
   );
