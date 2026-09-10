@@ -1,6 +1,10 @@
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, ReactNode } from "react";
 import type { TE1WizardStep } from "../wizard/te1-wizard.js";
-import type { TE1FormDraft } from "./te1-form-model.js";
+import {
+  createCircuitDraft,
+  type TE1CircuitDraft,
+  type TE1FormDraft
+} from "./te1-form-model.js";
 
 interface Props {
   step: TE1WizardStep;
@@ -40,6 +44,38 @@ export function StepForm({ step, draft, onChange }: Props) {
         ...draft,
         board: { ...draft.board, [field]: event.target.value }
       });
+
+  const updateCircuit = (
+    index: number,
+    patch: Partial<TE1CircuitDraft>
+  ) => {
+    onChange({
+      ...draft,
+      circuits: draft.circuits.map((circuit, currentIndex) =>
+        currentIndex === index ? { ...circuit, ...patch } : circuit
+      )
+    });
+  };
+
+  const addCircuit = () => {
+    const nextNumber =
+      Math.max(
+        0,
+        ...draft.circuits.map((circuit) => Number(circuit.number) || 0)
+      ) + 1;
+
+    onChange({
+      ...draft,
+      circuits: [...draft.circuits, createCircuitDraft(nextNumber)]
+    });
+  };
+
+  const removeCircuit = (index: number) => {
+    onChange({
+      ...draft,
+      circuits: draft.circuits.filter((_, currentIndex) => currentIndex !== index)
+    });
+  };
 
   if (step === "project") {
     return (
@@ -121,6 +157,42 @@ export function StepForm({ step, draft, onChange }: Props) {
     );
   }
 
+  if (step === "circuits") {
+    return (
+      <CircuitEditor
+        mode="circuits"
+        circuits={draft.circuits}
+        onUpdate={updateCircuit}
+        onAdd={addCircuit}
+        onRemove={removeCircuit}
+      />
+    );
+  }
+
+  if (step === "loads") {
+    return (
+      <CircuitEditor
+        mode="loads"
+        circuits={draft.circuits}
+        onUpdate={updateCircuit}
+        onAdd={addCircuit}
+        onRemove={removeCircuit}
+      />
+    );
+  }
+
+  if (step === "conductors") {
+    return (
+      <CircuitEditor
+        mode="conductors"
+        circuits={draft.circuits}
+        onUpdate={updateCircuit}
+        onAdd={addCircuit}
+        onRemove={removeCircuit}
+      />
+    );
+  }
+
   return (
     <div className="future-step">
       <strong>{labelFor(step)}</strong>
@@ -132,6 +204,199 @@ export function StepForm({ step, draft, onChange }: Props) {
   );
 }
 
+type CircuitMode = "circuits" | "loads" | "conductors";
+
+function CircuitEditor({
+  mode,
+  circuits,
+  onUpdate,
+  onAdd,
+  onRemove
+}: {
+  mode: CircuitMode;
+  circuits: TE1CircuitDraft[];
+  onUpdate: (index: number, patch: Partial<TE1CircuitDraft>) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+}) {
+  return (
+    <div className="circuit-editor">
+      <div className="circuit-toolbar">
+        <div>
+          <strong>{circuitModeTitle(mode)}</strong>
+          <small>{circuits.length} circuito(s)</small>
+        </div>
+        <button type="button" className="secondary compact" onClick={onAdd}>
+          + Agregar circuito
+        </button>
+      </div>
+
+      <div className="circuit-stack">
+        {circuits.map((circuit, index) => (
+          <section className="circuit-card" key={circuit.id}>
+            <div className="circuit-card-head">
+              <strong>Circuito {circuit.number || "?"}</strong>
+              {circuits.length > 1 && (
+                <button
+                  type="button"
+                  className="danger-link"
+                  onClick={() => onRemove(index)}
+                >
+                  Eliminar
+                </button>
+              )}
+            </div>
+
+            {mode === "circuits" && (
+              <div className="form-grid compact-grid">
+                <Field label="N° circuito">
+                  <input
+                    value={circuit.number}
+                    inputMode="numeric"
+                    onChange={(event) =>
+                      onUpdate(index, { number: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Descripción">
+                  <input
+                    value={circuit.description}
+                    placeholder="Ej. Alumbrado"
+                    onChange={(event) =>
+                      onUpdate(index, { description: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="ITM (A)">
+                  <input
+                    value={circuit.breakerA}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      onUpdate(index, { breakerA: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Poder de corte (kA)">
+                  <input
+                    value={circuit.breakingCapacityKA}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      onUpdate(index, {
+                        breakingCapacityKA: event.target.value
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Curva">
+                  <input
+                    value={circuit.curve}
+                    onChange={(event) =>
+                      onUpdate(index, { curve: event.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+            )}
+
+            {mode === "loads" && (
+              <div className="form-grid compact-grid">
+                <InfoField label="Circuito" value={circuit.description || "SIN DESCRIPCIÓN"} />
+                <InfoField label="ITM" value={circuit.breakerA ? `${circuit.breakerA} A` : "PENDIENTE"} />
+                <Field label="Potencia instalada (W)">
+                  <input
+                    value={circuit.installedPowerW}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      onUpdate(index, { installedPowerW: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Potencia demandada (W)">
+                  <input
+                    value={circuit.demandedPowerW}
+                    inputMode="decimal"
+                    placeholder="Opcional en esta etapa"
+                    onChange={(event) =>
+                      onUpdate(index, { demandedPowerW: event.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+            )}
+
+            {mode === "conductors" && (
+              <div className="form-grid compact-grid">
+                <InfoField label="Circuito" value={circuit.description || "SIN DESCRIPCIÓN"} />
+                <Field label="Fase (mm²)">
+                  <input
+                    value={circuit.conductorPhaseMm2}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      onUpdate(index, { conductorPhaseMm2: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Neutro (mm²)">
+                  <input
+                    value={circuit.conductorNeutralMm2}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      onUpdate(index, { conductorNeutralMm2: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="PE (mm²)">
+                  <input
+                    value={circuit.conductorPeMm2}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      onUpdate(index, { conductorPeMm2: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Material">
+                  <select
+                    value={circuit.conductorMaterial}
+                    onChange={(event) =>
+                      onUpdate(index, {
+                        conductorMaterial: event.target.value as "Cu" | "Al"
+                      })
+                    }
+                  >
+                    <option value="Cu">Cobre</option>
+                    <option value="Al">Aluminio</option>
+                  </select>
+                </Field>
+                <Field label="Método de instalación" wide>
+                  <input
+                    value={circuit.installationMethod}
+                    placeholder="Debe verificarse en terreno"
+                    onChange={(event) =>
+                      onUpdate(index, { installationMethod: event.target.value })
+                    }
+                  />
+                </Field>
+                <label className="verify-check wide">
+                  <input
+                    type="checkbox"
+                    checked={circuit.conductorVerified}
+                    onChange={(event) =>
+                      onUpdate(index, {
+                        conductorVerified: event.target.checked
+                      })
+                    }
+                  />
+                  <span>Conductor verificado en terreno / documentación confiable</span>
+                </label>
+              </div>
+            )}
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Field({
   label,
   wide = false,
@@ -139,7 +404,7 @@ function Field({
 }: {
   label: string;
   wide?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <label className={`field ${wide ? "wide" : ""}`}>
@@ -147,6 +412,21 @@ function Field({
       {children}
     </label>
   );
+}
+
+function InfoField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="field readonly">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function circuitModeTitle(mode: CircuitMode): string {
+  if (mode === "circuits") return "Circuitos y protecciones";
+  if (mode === "loads") return "Potencias por circuito";
+  return "Conductores por circuito";
 }
 
 function labelFor(step: TE1WizardStep): string {
