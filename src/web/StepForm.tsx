@@ -14,10 +14,11 @@ import {
 interface Props {
   step: TE1WizardStep;
   draft: TE1FormDraft;
+  projectId: string;
   onChange: (draft: TE1FormDraft) => void;
 }
 
-export function StepForm({ step, draft, onChange }: Props) {
+export function StepForm({ step, draft, projectId, onChange }: Props) {
   const updateProject =
     (field: keyof TE1FormDraft["project"]) =>
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -268,7 +269,7 @@ export function StepForm({ step, draft, onChange }: Props) {
   }
 
   if (step === "export") {
-    return <ExportPanel draft={draft} />;
+    return <ExportPanel draft={draft} projectId={projectId} />;
   }
 
   return (
