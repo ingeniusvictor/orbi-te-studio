@@ -8,18 +8,27 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm test",
-    "generate:casa-goyo": "tsx scripts/generate-casa-goyo.ts"
+    "check": "npm run typecheck && npm test && npm run build",
+    "generate:casa-goyo": "tsx scripts/generate-casa-goyo.ts",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "pdfkit": "^0.17.2",
-    "svg-to-pdfkit": "^0.1.8"
+    "svg-to-pdfkit": "^0.1.8",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/pdfkit": "^0.17.3",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
-    "tsx": "^4.20.5"
+    "tsx": "^4.20.5",
+    "@vitejs/plugin-react": "^5.0.2",
+    "vite": "^7.1.5",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9"
   }
 }
