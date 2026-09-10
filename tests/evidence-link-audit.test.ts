@@ -20,7 +20,8 @@ function metadata(
     sizeBytes: 1000,
     lastModified: 0,
     createdAt: "2026-09-10T20:00:00.000Z",
-    notes: ""
+    notes: "",
+    sha256: "a".repeat(64)
   };
 }
 
