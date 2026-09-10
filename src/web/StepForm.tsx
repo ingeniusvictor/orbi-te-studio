@@ -1,5 +1,7 @@
 import type { ChangeEvent, ReactNode } from "react";
 import type { TE1WizardStep } from "../wizard/te1-wizard.js";
+import { MeasurementForm } from "./MeasurementForm.js";
+import { PlanForm } from "./PlanForm.js";
 import {
   createCircuitDraft,
   type TE1CircuitDraft,
@@ -191,6 +193,14 @@ export function StepForm({ step, draft, onChange }: Props) {
         onRemove={removeCircuit}
       />
     );
+  }
+
+  if (step === "measurements") {
+    return <MeasurementForm draft={draft} onChange={onChange} />;
+  }
+
+  if (step === "plans") {
+    return <PlanForm draft={draft} onChange={onChange} />;
   }
 
   return (
