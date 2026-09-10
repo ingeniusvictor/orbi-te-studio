@@ -145,8 +145,16 @@ export function draftToTE1Project(
     },
     circuits,
     evidence: [],
-    professionalReview: {
-      status: "pending"
-    }
+    professionalReview: draft.review.approved
+      ? {
+          status: "approved",
+          reviewedBy: draft.review.reviewerName.trim(),
+          reviewedAt: draft.review.approvedAt,
+          ...(draft.review.notes.trim() ? { notes: draft.review.notes.trim() } : {})
+        }
+      : {
+          status: "pending",
+          ...(draft.review.notes.trim() ? { notes: draft.review.notes.trim() } : {})
+        }
   };
 }
