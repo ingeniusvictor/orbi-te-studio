@@ -23,3 +23,13 @@ jobs:
 
       - name: Typecheck and test
         run: npm run check
+
+      - name: Generate Casa Goyo A2 artifacts
+        run: npm run generate:casa-goyo
+
+      - name: Upload Casa Goyo A2 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: casa-goyo-te1-a2
+          path: artifacts/TE1-REF-002-casa-goyo/
+          if-no-files-found: error
