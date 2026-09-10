@@ -1,3 +1,20 @@
+export interface TE1CircuitDraft {
+  id: string;
+  number: string;
+  description: string;
+  breakerA: string;
+  breakingCapacityKA: string;
+  curve: string;
+  installedPowerW: string;
+  demandedPowerW: string;
+  conductorPhaseMm2: string;
+  conductorNeutralMm2: string;
+  conductorPeMm2: string;
+  conductorMaterial: "Cu" | "Al";
+  installationMethod: string;
+  conductorVerified: boolean;
+}
+
 export interface TE1FormDraft {
   project: {
     name: string;
@@ -21,6 +38,26 @@ export interface TE1FormDraft {
     totalWays: string;
     frontalPhotoLabel: string;
     legendPhotoLabel: string;
+  };
+  circuits: TE1CircuitDraft[];
+}
+
+export function createCircuitDraft(number: number): TE1CircuitDraft {
+  return {
+    id: `CIRCUIT-${number}`,
+    number: String(number),
+    description: "",
+    breakerA: "",
+    breakingCapacityKA: "6",
+    curve: "C",
+    installedPowerW: "",
+    demandedPowerW: "",
+    conductorPhaseMm2: "",
+    conductorNeutralMm2: "",
+    conductorPeMm2: "",
+    conductorMaterial: "Cu",
+    installationMethod: "",
+    conductorVerified: false
   };
 }
 
@@ -48,7 +85,8 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       totalWays: "12",
       frontalPhotoLabel: "",
       legendPhotoLabel: ""
-    }
+    },
+    circuits: [createCircuitDraft(1)]
   };
 }
 
@@ -76,6 +114,23 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       totalWays: "12",
       frontalPhotoLabel: "Fotografía frontal tablero Casa Goyo",
       legendPhotoLabel: "Leyenda visible en fotografía frontal"
-    }
+    },
+    circuits: [
+      {
+        ...createCircuitDraft(1),
+        description: "Alumbrado",
+        breakerA: "10"
+      },
+      {
+        ...createCircuitDraft(2),
+        description: "Enchufes comunes",
+        breakerA: "16"
+      },
+      {
+        ...createCircuitDraft(3),
+        description: "Enchufes cocina - logia",
+        breakerA: "16"
+      }
+    ]
   };
 }
