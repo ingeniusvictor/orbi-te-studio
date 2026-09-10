@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createTE1Wizard } from "../src/wizard/te1-wizard.js";
 import { createCasaGoyoDemoDraft } from "../src/web/te1-form-model.js";
 import {
+  LEGACY_PROJECT_STORE_KEY,
   PROJECT_STORE_KEY,
   createProjectId,
   decodeProjectStore,
@@ -86,6 +87,40 @@ describe("versioned TE1 project storage", () => {
     deleteStoredProject(storage, "TE1-REF-002");
 
     expect(storage.getItem(PROJECT_STORE_KEY)).toBeNull();
+  });
+
+  it("migrates legacy v1 projects with empty evidence ids", () => {
+    const storage = new MemoryStorage();
+    const legacyDraft = createCasaGoyoDemoDraft() as unknown as Record<string, unknown>;
+    const location = { ...(legacyDraft.location as Record<string, unknown>) };
+    delete location.locationSketchEvidenceId;
+    const board = { ...(legacyDraft.board as Record<string, unknown>) };
+    delete board.frontalEvidenceId;
+    delete board.legendEvidenceId;
+    legacyDraft.location = location;
+    legacyDraft.board = board;
+
+    storage.setItem(
+      LEGACY_PROJECT_STORE_KEY,
+      JSON.stringify({
+        schemaVersion: 1,
+        projects: [
+          {
+            schemaVersion: 1,
+            projectId: "TE1-LEGACY",
+            name: "Proyecto legado",
+            updatedAt: "2026-09-10T20:00:00.000Z",
+            draft: legacyDraft,
+            wizard: createTE1Wizard("TE1-LEGACY")
+          }
+        ]
+      })
+    );
+
+    const [loaded] = listStoredProjects(storage);
+    expect(loaded?.draft.board.frontalEvidenceId).toBe("");
+    expect(loaded?.draft.location.locationSketchEvidenceId).toBe("");
+    expect(loaded?.draft.measurements[0]?.evidenceId).toBe("");
   });
 
   it("creates deterministic time-based ids when time is supplied", () => {
