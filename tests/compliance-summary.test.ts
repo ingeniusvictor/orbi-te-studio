@@ -32,4 +32,19 @@ describe("unified RIC compliance summary", () => {
       )?.status
     ).toBe("blocker");
   });
+
+  it("does not treat an architectural plan as a location sketch", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.plan.sourceType = "architectural-plan";
+    draft.plan.sourceLabel = "planta.pdf";
+    draft.plan.reviewed = true;
+
+    const summary = buildComplianceSummary(draft);
+
+    expect(
+      summary.items.find(
+        (item) => item.code === "RIC18-6.3.6-LOCATION-SKETCH"
+      )?.status
+    ).toBe("blocker");
+  });
 });
