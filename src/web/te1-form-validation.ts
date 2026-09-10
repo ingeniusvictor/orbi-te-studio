@@ -63,6 +63,21 @@ export function validateFormStep(
         "Evidencia fotográfica frontal del tablero",
         issues
       );
+      if (!positiveNumber(draft.board.mainPoles)) {
+        issues.push("Protección general: cantidad de polos pendiente o inválida.");
+      }
+      if (!positiveNumber(draft.board.mainCurrentA)) {
+        issues.push("Protección general: corriente nominal pendiente o inválida.");
+      }
+      if (!positiveNumber(draft.board.differentialPoles)) {
+        issues.push("Protección diferencial: cantidad de polos pendiente o inválida.");
+      }
+      if (!positiveNumber(draft.board.differentialCurrentA)) {
+        issues.push("Protección diferencial: corriente nominal pendiente o inválida.");
+      }
+      if (!positiveNumber(draft.board.differentialResidualMA)) {
+        issues.push("Protección diferencial: sensibilidad pendiente o inválida.");
+      }
       break;
     }
 
