@@ -34,6 +34,8 @@ describe("TE1 editable wizard form validation", () => {
     expect(result.valid).toBe(false);
     expect(result.issues).toContain("Dirección es obligatorio.");
     expect(result.issues).toContain("Debe ingresar georreferencia WGS84 o UTM.");
+    expect(result.issues).toContain("Evidencia del croquis de ubicación es obligatorio.");
+    expect(result.issues).toContain("El croquis de ubicación aún no está verificado.");
   });
 
   it("accepts the observed Casa Goyo board header", () => {
@@ -102,6 +104,8 @@ describe("TE1 editable wizard form validation", () => {
     const draft = createCasaGoyoDemoDraft();
     draft.location.address = "Dirección de prueba";
     draft.location.wgs84 = "-40.0,-73.0";
+    draft.location.locationSketchEvidenceLabel = "croquis-ubicacion.pdf";
+    draft.location.locationSketchVerified = true;
     draft.plan.sourceType = "measured-sketch";
     draft.plan.sourceLabel = "croquis.pdf";
     draft.plan.hasDimensions = true;
