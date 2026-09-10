@@ -19,6 +19,7 @@ import {
   type TE1FormDraft
 } from "./te1-form-model.js";
 import { validateFormStep } from "./te1-form-validation.js";
+import { DrawingPreview } from "./DrawingPreview.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -201,6 +202,8 @@ export function App() {
             <Info label="Circuitos" value={String(liveProject.circuits.length)} />
             <Info label="Potencia instalada" value={String(manifest.totals.installedPowerW)} />
           </div>
+
+          <DrawingPreview draft={draft} projectId={wizard.projectId} />
 
           <div className="split-grid">
               <div className="section-card">
