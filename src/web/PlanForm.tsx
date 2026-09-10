@@ -1,10 +1,13 @@
+import { EvidencePicker } from "./EvidencePicker.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 
 export function PlanForm({
   draft,
+  projectId,
   onChange
 }: {
   draft: TE1FormDraft;
+  projectId: string;
   onChange: (draft: TE1FormDraft) => void;
 }) {
   const update = (patch: Partial<TE1FormDraft["plan"]>) =>
@@ -12,6 +15,15 @@ export function PlanForm({
       ...draft,
       plan: { ...draft.plan, ...patch }
     });
+
+  const allowedCategories =
+    draft.plan.sourceType === "architectural-plan"
+      ? ["architectural-plan" as const]
+      : draft.plan.sourceType === "legacy-plan"
+        ? ["legacy-plan" as const]
+        : draft.plan.sourceType === "measured-sketch"
+          ? ["architectural-plan" as const, "general" as const]
+          : ["architectural-plan" as const, "legacy-plan" as const, "general" as const];
 
   return (
     <div className="form-grid">
@@ -21,7 +33,9 @@ export function PlanForm({
           value={draft.plan.sourceType}
           onChange={(event) =>
             update({
-              sourceType: event.target.value as TE1FormDraft["plan"]["sourceType"]
+              sourceType: event.target.value as TE1FormDraft["plan"]["sourceType"],
+              sourceEvidenceId: "",
+              sourceLabel: ""
             })
           }
         >
@@ -41,14 +55,20 @@ export function PlanForm({
         />
       </label>
 
-      <label className="field wide">
-        <span>Archivo / evidencia fuente</span>
-        <input
-          value={draft.plan.sourceLabel}
-          placeholder="Ej. planta_arquitectura.pdf"
-          onChange={(event) => update({ sourceLabel: event.target.value })}
+      <div className="wide">
+        <EvidencePicker
+          projectId={projectId}
+          allowCategories={allowedCategories}
+          value={draft.plan.sourceEvidenceId}
+          label="Archivo / evidencia fuente"
+          onSelect={(selection) =>
+            update({
+              sourceEvidenceId: selection?.id ?? "",
+              sourceLabel: selection?.filename ?? ""
+            })
+          }
         />
-      </label>
+      </div>
 
       <label className="verify-check wide">
         <input
