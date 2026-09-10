@@ -6,6 +6,7 @@ import {
   type ApiGeneratedArtifact
 } from "./generation-api.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
+import { useEvidenceAudit } from "./use-evidence-audit.js";
 
 export function ExportPanel({
   draft,
@@ -15,6 +16,7 @@ export function ExportPanel({
   projectId: string;
 }) {
   const summary = buildWebExportSummary(draft);
+  const evidenceAudit = useEvidenceAudit(projectId, draft);
   const [state, setState] = useState<
     "idle" | "generating" | "success" | "error"
   >("idle");
@@ -27,6 +29,12 @@ export function ExportPanel({
     setGenerated([]);
 
     try {
+      if (!evidenceAudit.valid) {
+        setIssues(evidenceAudit.issues);
+        setState("error");
+        return;
+      }
+
       const result = await requestTE1Package(draft, projectId);
 
       if (!result.ok) {
@@ -53,11 +61,11 @@ export function ExportPanel({
     <div className="export-panel">
       <div
         className={`review-banner ${
-          summary.approvedForPreparation ? "ready" : "blocked"
+          summary.approvedForPreparation && evidenceAudit.valid ? "ready" : "blocked"
         }`}
       >
         <strong>
-          {summary.approvedForPreparation
+          {summary.approvedForPreparation && evidenceAudit.valid
             ? "Paquete habilitado para generación."
             : "Exportación bloqueada."}
         </strong>
@@ -83,12 +91,26 @@ export function ExportPanel({
         ))}
       </div>
 
+      <div className="evidence-export-audit">
+        <strong>Integridad de evidencia local</strong>
+        <span>
+          {evidenceAudit.checking
+            ? "Verificando archivos vinculados..."
+            : evidenceAudit.valid
+              ? "Todos los vínculos requeridos apuntan a archivos existentes y compatibles."
+              : evidenceAudit.issues.join(" · ")}
+        </span>
+      </div>
+
       <div className="action-row">
         <button
           type="button"
           className="primary"
           disabled={
-            !summary.approvedForPreparation || state === "generating"
+            !summary.approvedForPreparation ||
+            !evidenceAudit.valid ||
+            evidenceAudit.checking ||
+            state === "generating"
           }
           onClick={generatePackage}
         >
