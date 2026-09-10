@@ -127,7 +127,7 @@ export function renderCasaGoyoRic18A2Svg(): string {
       rightW,
       bottomH - 64,
       "CUADRO DE SIMBOLOGÍA",
-      renderSymbolLegendPanel(),
+      renderSymbolLegendPanel(undefined, { showTitle: false }),
       { scale: 0.92, offsetX: 7, offsetY: 11 }
     )
   );
