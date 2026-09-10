@@ -23,7 +23,7 @@ describe("generic TE1 A2 renderer", () => {
 
     expect(svg).toContain("CASA GOYO - OSORNO");
     expect(svg).toContain("TDA CASA GOYO");
-    expect(svg).toContain("ALUMBRADO");
+    expect(svg).toContain("Alumbrado");
     expect(svg).toContain("10A");
     expect(svg).toContain("PENDING");
   });
