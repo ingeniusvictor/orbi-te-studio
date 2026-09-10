@@ -180,7 +180,7 @@ export function App() {
   const reset = () => {
     const isDemo = wizard.projectId === casaGoyoReference.id;
     setDraft(isDemo ? createCasaGoyoDemoDraft() : createEmptyTE1FormDraft());
-    setWizard(createTE1Wizard(isDemo ? casaGoyoReference.id : "TE1-DRAFT"));
+    setWizard(createTE1Wizard(wizard.projectId));
   };
 
   return (
