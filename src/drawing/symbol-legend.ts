@@ -14,31 +14,11 @@ export interface SymbolLegendItem {
 }
 
 export const defaultTE1SymbolLegend: SymbolLegendItem[] = [
-  {
-    kind: "main-breaker",
-    code: "AG",
-    description: "Interruptor automático general"
-  },
-  {
-    kind: "differential",
-    code: "ID",
-    description: "Interruptor diferencial"
-  },
-  {
-    kind: "branch-breaker",
-    code: "C",
-    description: "Interruptor automático de circuito"
-  },
-  {
-    kind: "earth",
-    code: "TP/TS",
-    description: "Puesta a tierra"
-  },
-  {
-    kind: "junction",
-    code: "●",
-    description: "Punto de conexión"
-  }
+  { kind: "main-breaker", code: "AG", description: "Interruptor automático general" },
+  { kind: "differential", code: "ID", description: "Interruptor diferencial" },
+  { kind: "branch-breaker", code: "C", description: "Interruptor automático de circuito" },
+  { kind: "earth", code: "TP/TS", description: "Puesta a tierra" },
+  { kind: "junction", code: "●", description: "Punto de conexión" }
 ];
 
 function renderSymbol(kind: SymbolKind, x: number, y: number): string {
@@ -67,18 +47,23 @@ function renderSymbol(kind: SymbolKind, x: number, y: number): string {
 }
 
 export function renderSymbolLegendPanel(
-  items: SymbolLegendItem[] = defaultTE1SymbolLegend
+  items: SymbolLegendItem[] = defaultTE1SymbolLegend,
+  options?: { showTitle?: boolean }
 ): string {
+  const showTitle = options?.showTitle ?? true;
   const width = 160;
   const rowHeight = 9;
-  const height = 9 + items.length * rowHeight;
+  const headerHeight = showTitle ? 9 : 0;
+  const height = headerHeight + items.length * rowHeight;
   const parts: string[] = [rect(0, 0, width, height, "med")];
 
-  parts.push(text(width / 2, 6, "CUADRO DE SIMBOLOGÍA", "label", "middle"));
-  parts.push(line(0, 9, width, 9, "med"));
+  if (showTitle) {
+    parts.push(text(width / 2, 6, "CUADRO DE SIMBOLOGÍA", "label", "middle"));
+    parts.push(line(0, 9, width, 9, "med"));
+  }
 
   items.forEach((item, index) => {
-    const y = 9 + index * rowHeight;
+    const y = headerHeight + index * rowHeight;
     if (index > 0) parts.push(line(0, y, width, y));
     parts.push(renderSymbol(item.kind, 4, y + rowHeight / 2));
     parts.push(text(22, y + 6, item.code, "small"));
