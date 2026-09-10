@@ -21,9 +21,11 @@ Status: ACTIVE
 ## 0.3 RIC knowledge base
 - [x] Define rule schema
 - [x] Encode initial verified RIC N°10 rules with source metadata
-- [ ] Expand authoritative current SEC sources
+- [x] RIC N°18 presentation baseline verified against current SEC publication
+- [ ] Expand remaining authoritative current SEC sources
 - [ ] Add version/effective-date handling to rule selection
-- [ ] Regression tests per added rule
+- [x] Initial RIC N°18 presentation regression tests
+- [ ] Regression tests per additional rule
 
 ## 0.4 Drawing engine
 - [ ] Panel front-view renderer
@@ -35,10 +37,12 @@ Status: ACTIVE
 - [x] A2 SVG composition
 - [x] RIC-style title-block data model
 - [x] RIC-style title-block SVG renderer v0.1
-- [ ] Exact RIC N°18 title-block geometry certification
+- [x] Annex 18.1 margins and Annex 18.2 baseline geometry encoded
+- [ ] Exact RIC N°18 print/layout visual certification
 - [ ] Location sketch renderer
 - [ ] Electrical floor-plan renderer
-- [ ] Vector SVG -> PDF export
+- [x] Vector SVG -> PDF export implementation
+- [x] Casa Goyo SVG/PDF generation script
 
 ## 0.5 Field intake
 - [x] Structured intake model
@@ -56,6 +60,7 @@ Status: ACTIVE
 - [x] Approval audit record
 - [x] Export readiness status
 - [ ] Reviewer checklist UI
+- [x] RIC N°18 first-sheet presentation blockers
 
 ## 0.7 SEC preparation
 - [x] TE1 project manifest v0.1
