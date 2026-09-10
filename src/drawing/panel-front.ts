@@ -46,13 +46,19 @@ export function buildPanelFrontModel(
     const index = device.position - 1;
     if (index < 0 || index >= totalWays) continue;
 
-    slots[index] = {
+    const slot: PanelFrontSlot = {
       slot: device.position,
       kind: device.kind,
-      label: device.label ?? device.kind,
-      rating: ratingForDevice(device),
-      circuitNumber: device.circuitNumber
+      label: device.label ?? device.kind
     };
+
+    const rating = ratingForDevice(device);
+    if (rating !== undefined) slot.rating = rating;
+    if (device.circuitNumber !== undefined) {
+      slot.circuitNumber = device.circuitNumber;
+    }
+
+    slots[index] = slot;
   }
 
   const legend = devices
