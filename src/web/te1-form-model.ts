@@ -27,6 +27,7 @@ export interface TE1MeasurementDraft {
   kind: MeasurementDraftKind;
   value: string;
   unit: string;
+  evidenceId: string;
   evidenceLabel: string;
   verified: boolean;
   notes: string;
@@ -34,6 +35,7 @@ export interface TE1MeasurementDraft {
 
 export interface TE1PlanDraft {
   sourceType: "architectural-plan" | "measured-sketch" | "legacy-plan" | "";
+  sourceEvidenceId: string;
   sourceLabel: string;
   scale: string;
   hasElectricalPoints: boolean;
@@ -59,13 +61,16 @@ export interface TE1FormDraft {
     region: string;
     wgs84: string;
     utm: string;
+    locationSketchEvidenceId: string;
     locationSketchEvidenceLabel: string;
     locationSketchVerified: boolean;
   };
   board: {
     name: string;
     totalWays: string;
+    frontalEvidenceId: string;
     frontalPhotoLabel: string;
+    legendEvidenceId: string;
     legendPhotoLabel: string;
     mainPoles: string;
     mainCurrentA: string;
@@ -111,6 +116,7 @@ export function createMeasurementDrafts(): TE1MeasurementDraft[] {
       kind: "supply-voltage",
       value: "",
       unit: "V",
+      evidenceId: "",
       evidenceLabel: "",
       verified: false,
       notes: ""
@@ -120,6 +126,7 @@ export function createMeasurementDrafts(): TE1MeasurementDraft[] {
       kind: "insulation-resistance",
       value: "",
       unit: "MΩ",
+      evidenceId: "",
       evidenceLabel: "",
       verified: false,
       notes: ""
@@ -129,6 +136,7 @@ export function createMeasurementDrafts(): TE1MeasurementDraft[] {
       kind: "pe-continuity",
       value: "",
       unit: "Ω",
+      evidenceId: "",
       evidenceLabel: "",
       verified: false,
       notes: ""
@@ -138,6 +146,7 @@ export function createMeasurementDrafts(): TE1MeasurementDraft[] {
       kind: "earthing-resistance",
       value: "",
       unit: "Ω",
+      evidenceId: "",
       evidenceLabel: "",
       verified: false,
       notes: ""
@@ -147,6 +156,7 @@ export function createMeasurementDrafts(): TE1MeasurementDraft[] {
       kind: "rcd-test",
       value: "",
       unit: "ms",
+      evidenceId: "",
       evidenceLabel: "",
       verified: false,
       notes: ""
@@ -157,6 +167,7 @@ export function createMeasurementDrafts(): TE1MeasurementDraft[] {
 function emptyPlan(): TE1PlanDraft {
   return {
     sourceType: "",
+    sourceEvidenceId: "",
     sourceLabel: "",
     scale: "",
     hasElectricalPoints: false,
@@ -184,13 +195,16 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       region: "",
       wgs84: "",
       utm: "",
+      locationSketchEvidenceId: "",
       locationSketchEvidenceLabel: "",
       locationSketchVerified: false
     },
     board: {
       name: "",
       totalWays: "12",
+      frontalEvidenceId: "",
       frontalPhotoLabel: "",
+      legendEvidenceId: "",
       legendPhotoLabel: "",
       mainPoles: "",
       mainCurrentA: "",
@@ -235,7 +249,9 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
     board: {
       name: "TDA CASA GOYO",
       totalWays: "12",
+      frontalEvidenceId: "",
       frontalPhotoLabel: "Fotografía frontal tablero Casa Goyo",
+      legendEvidenceId: "",
       legendPhotoLabel: "Leyenda visible en fotografía frontal",
       mainPoles: "1",
       mainCurrentA: "25",
