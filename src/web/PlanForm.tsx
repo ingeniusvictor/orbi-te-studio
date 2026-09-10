@@ -22,7 +22,7 @@ export function PlanForm({
       : draft.plan.sourceType === "legacy-plan"
         ? ["legacy-plan" as const]
         : draft.plan.sourceType === "measured-sketch"
-          ? ["architectural-plan" as const, "general" as const]
+          ? ["measured-sketch" as const]
           : ["architectural-plan" as const, "legacy-plan" as const, "general" as const];
 
   return (
