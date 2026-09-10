@@ -21,6 +21,7 @@ export interface LocalEvidenceRecord {
   lastModified: number;
   createdAt: string;
   notes: string;
+  sha256: string;
   blob: Blob;
 }
 
@@ -34,6 +35,7 @@ export interface LocalEvidenceMetadata {
   lastModified: number;
   createdAt: string;
   notes: string;
+  sha256: string;
 }
 
 export const EVIDENCE_MAX_FILE_BYTES = 20 * 1024 * 1024;
