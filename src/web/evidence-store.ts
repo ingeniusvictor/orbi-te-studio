@@ -50,6 +50,7 @@ export async function addEvidence(
       .put(record)
   );
   db.close();
+  notifyEvidenceChanged();
 
   return toEvidenceMetadata(record);
 }
@@ -87,6 +88,7 @@ export async function deleteEvidence(id: string): Promise<void> {
     db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(id)
   );
   db.close();
+  notifyEvidenceChanged();
 }
 
 export async function deleteProjectEvidence(projectId: string): Promise<void> {
@@ -104,6 +106,7 @@ export async function deleteProjectEvidence(projectId: string): Promise<void> {
 
   await transactionComplete(tx);
   db.close();
+  notifyEvidenceChanged();
 }
 
 function openEvidenceDb(): Promise<IDBDatabase> {
@@ -157,4 +160,10 @@ function createEvidenceId(): string {
   }
 
   return `EV-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function notifyEvidenceChanged(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("orbi:evidence-changed"));
+  }
 }
