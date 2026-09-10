@@ -136,6 +136,35 @@ export function validateFormStep(
       }
       break;
 
+    case "measurements":
+      for (const measurement of draft.measurements) {
+        if (!positiveNumber(measurement.value)) {
+          issues.push(`${measurement.kind}: valor pendiente o inválido.`);
+        }
+        required(
+          measurement.evidenceLabel,
+          `${measurement.kind}: evidencia`,
+          issues
+        );
+        if (!measurement.verified) {
+          issues.push(`${measurement.kind}: medición aún no verificada.`);
+        }
+      }
+      break;
+
+    case "plans":
+      if (!draft.plan.sourceType) {
+        issues.push("Debe seleccionar una fuente para la planta eléctrica.");
+      }
+      required(draft.plan.sourceLabel, "Archivo o evidencia del plano", issues);
+      if (!draft.plan.hasDimensions) {
+        issues.push("La fuente debe contener dimensiones suficientes.");
+      }
+      if (!draft.plan.reviewed) {
+        issues.push("La fuente del plano aún no cuenta con revisión profesional.");
+      }
+      break;
+
     default:
       break;
   }
