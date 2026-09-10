@@ -65,6 +65,12 @@ export interface TE1FormDraft {
     totalWays: string;
     frontalPhotoLabel: string;
     legendPhotoLabel: string;
+    mainPoles: string;
+    mainCurrentA: string;
+    mainBreakingCapacityKA: string;
+    differentialPoles: string;
+    differentialCurrentA: string;
+    differentialResidualMA: string;
   };
   circuits: TE1CircuitDraft[];
   measurements: TE1MeasurementDraft[];
@@ -175,7 +181,13 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       name: "",
       totalWays: "12",
       frontalPhotoLabel: "",
-      legendPhotoLabel: ""
+      legendPhotoLabel: "",
+      mainPoles: "",
+      mainCurrentA: "",
+      mainBreakingCapacityKA: "",
+      differentialPoles: "",
+      differentialCurrentA: "",
+      differentialResidualMA: ""
     },
     circuits: [createCircuitDraft(1)],
     measurements: createMeasurementDrafts(),
@@ -206,7 +218,13 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       name: "TDA CASA GOYO",
       totalWays: "12",
       frontalPhotoLabel: "Fotografía frontal tablero Casa Goyo",
-      legendPhotoLabel: "Leyenda visible en fotografía frontal"
+      legendPhotoLabel: "Leyenda visible en fotografía frontal",
+      mainPoles: "1",
+      mainCurrentA: "25",
+      mainBreakingCapacityKA: "6",
+      differentialPoles: "2",
+      differentialCurrentA: "25",
+      differentialResidualMA: "30"
     },
     circuits: [
       {
