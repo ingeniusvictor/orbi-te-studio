@@ -76,7 +76,7 @@ export function renderCasaGoyoA2SvgV2(): string {
       width: 94,
       height: 92,
       title: "CROQUIS UBICACIÓN",
-      content: renderLocationSketchPanel({ propertyLabel: "PREDIO" })
+      content: renderLocationSketchPanel({ status: "pending" })
     },
     {
       x: 380,
