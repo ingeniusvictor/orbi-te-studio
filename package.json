@@ -1,0 +1,17 @@
+{
+  "name": "orbi-te-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ORBI TE Studio - asistencia para diseño, verificación y preparación de proyectos TE1/TE4 en Chile",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
