@@ -1,9 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { generateTE1FromDraft } from "./generate-te1-service.js";
+import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify-evidence-service.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
-const MAX_BODY_BYTES = 5 * 1024 * 1024;
+const MAX_BODY_BYTES = 30 * 1024 * 1024;
 
 const server = createServer(async (request, response) => {
   setCors(response);
@@ -21,6 +22,38 @@ const server = createServer(async (request, response) => {
       version: "0.1"
     });
     return;
+  }
+
+  if (request.method === "POST" && request.url === "/api/te1/evidence/verify") {
+    try {
+      const payload = await readJsonBody(request);
+      const uploads = (payload as { uploads?: EvidenceVerificationUpload[] }).uploads;
+
+      if (!Array.isArray(uploads) || uploads.length === 0) {
+        json(response, 422, {
+          ok: false,
+          algorithm: "SHA-256",
+          verifiedAt: new Date().toISOString(),
+          items: [],
+          message: "La solicitud debe incluir al menos un archivo de evidencia."
+        });
+        return;
+      }
+
+      const result = verifyEvidenceUploads(uploads);
+      json(response, result.ok ? 200 : 422, result);
+      return;
+    } catch (error) {
+      json(response, 422, {
+        ok: false,
+        algorithm: "SHA-256",
+        verifiedAt: new Date().toISOString(),
+        items: [],
+        message: "No fue posible verificar la evidencia.",
+        issues: [error instanceof Error ? error.message : "Error desconocido"]
+      });
+      return;
+    }
   }
 
   if (request.method === "POST" && request.url === "/api/te1/generate") {
@@ -75,7 +108,7 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     total += buffer.byteLength;
     if (total > MAX_BODY_BYTES) {
-      throw new Error("La solicitud supera el límite de 5 MB.");
+      throw new Error("La solicitud supera el límite de 30 MB.");
     }
     chunks.push(buffer);
   }
