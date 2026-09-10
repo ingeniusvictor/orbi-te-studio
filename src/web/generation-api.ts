@@ -75,3 +75,59 @@ export function downloadArtifact(artifact: ApiGeneratedArtifact): void {
   anchor.click();
   URL.revokeObjectURL(url);
 }
+
+
+export interface EvidenceVerificationUpload {
+  evidenceId: string;
+  filename: string;
+  mimeType: string;
+  expectedSha256: string;
+  contentBase64: string;
+}
+
+export interface EvidenceVerificationItem {
+  evidenceId: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  expectedSha256: string;
+  actualSha256: string;
+  verified: boolean;
+  issues: string[];
+}
+
+export interface EvidenceVerificationResponse {
+  ok: boolean;
+  algorithm: "SHA-256";
+  verifiedAt: string;
+  items: EvidenceVerificationItem[];
+  message?: string;
+  issues?: string[];
+}
+
+export async function requestEvidenceVerification(
+  uploads: EvidenceVerificationUpload[]
+): Promise<EvidenceVerificationResponse> {
+  const response = await fetch("/api/te1/evidence/verify", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ uploads })
+  });
+
+  const body = (await response.json()) as EvidenceVerificationResponse;
+  return body;
+}
+
+export async function blobToBase64(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+
+  return btoa(binary);
+}
