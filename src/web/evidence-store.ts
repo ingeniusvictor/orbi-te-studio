@@ -5,6 +5,7 @@ import {
   type LocalEvidenceMetadata,
   type LocalEvidenceRecord
 } from "./evidence-types.js";
+import { sha256Blob } from "./evidence-hash.js";
 
 const DB_NAME = "orbi-te-studio-evidence";
 const DB_VERSION = 1;
@@ -40,6 +41,7 @@ export async function addEvidence(
     lastModified: input.file.lastModified,
     createdAt: new Date().toISOString(),
     notes: input.notes?.trim() ?? "",
+    sha256: await sha256Blob(input.file),
     blob: input.file
   };
 
@@ -61,12 +63,13 @@ export async function listEvidence(
   const db = await openEvidenceDb();
   const store = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME);
   const index = store.index(PROJECT_INDEX);
-  const records = await runRequest<LocalEvidenceRecord[]>(
+  const records = await runRequest<Array<LocalEvidenceRecord & { sha256?: string }>>(
     index.getAll(IDBKeyRange.only(projectId))
   );
   db.close();
 
-  return records
+  const normalized = await ensureHashes(records);
+  return normalized
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map(toEvidenceMetadata);
 }
@@ -75,10 +78,13 @@ export async function getEvidenceBlob(
   id: string
 ): Promise<LocalEvidenceRecord | undefined> {
   const db = await openEvidenceDb();
-  const record = await runRequest<LocalEvidenceRecord | undefined>(
+  const raw = await runRequest<(LocalEvidenceRecord & { sha256?: string }) | undefined>(
     db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(id)
   );
   db.close();
+
+  if (!raw) return undefined;
+  const [record] = await ensureHashes([raw]);
   return record;
 }
 
@@ -107,6 +113,33 @@ export async function deleteProjectEvidence(projectId: string): Promise<void> {
   await transactionComplete(tx);
   db.close();
   notifyEvidenceChanged();
+}
+
+async function ensureHashes(
+  records: Array<LocalEvidenceRecord & { sha256?: string }>
+): Promise<LocalEvidenceRecord[]> {
+  const normalized: LocalEvidenceRecord[] = [];
+  const changed: LocalEvidenceRecord[] = [];
+
+  for (const raw of records) {
+    const record: LocalEvidenceRecord = {
+      ...raw,
+      sha256: raw.sha256?.trim() || (await sha256Blob(raw.blob))
+    };
+    normalized.push(record);
+    if (!raw.sha256?.trim()) changed.push(record);
+  }
+
+  if (changed.length > 0) {
+    const db = await openEvidenceDb();
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    for (const record of changed) store.put(record);
+    await transactionComplete(tx);
+    db.close();
+  }
+
+  return normalized;
 }
 
 function openEvidenceDb(): Promise<IDBDatabase> {
