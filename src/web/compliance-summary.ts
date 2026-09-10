@@ -59,7 +59,9 @@ export function buildComplianceSummary(
     hasGeoreference: Boolean(
       draft.location.wgs84.trim() || draft.location.utm.trim()
     ),
-    hasLocationSketch: Boolean(draft.plan.sourceLabel.trim()),
+    hasLocationSketch:
+      Boolean(draft.location.locationSketchEvidenceLabel.trim()) &&
+      draft.location.locationSketchVerified,
     destination: draft.project.destination,
     sheetNumber: 1,
     sheetTotal: 1,
