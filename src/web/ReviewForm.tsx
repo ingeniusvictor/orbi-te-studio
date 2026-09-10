@@ -1,14 +1,23 @@
 import { buildReviewGateSummary } from "./review-summary.js";
+import { useEvidenceAudit } from "./use-evidence-audit.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 
 export function ReviewForm({
   draft,
+  projectId,
   onChange
 }: {
   draft: TE1FormDraft;
+  projectId: string;
   onChange: (draft: TE1FormDraft) => void;
 }) {
   const summary = buildReviewGateSummary(draft);
+  const evidenceAudit = useEvidenceAudit(projectId, draft);
+  const canApprove =
+    summary.readyForApproval &&
+    evidenceAudit.valid &&
+    !evidenceAudit.checking &&
+    Boolean(draft.review.reviewerName.trim());
 
   const update = (patch: Partial<TE1FormDraft["review"]>) =>
     onChange({
@@ -25,11 +34,11 @@ export function ReviewForm({
 
   return (
     <div className="review-panel">
-      <div className={`review-banner ${summary.readyForApproval ? "ready" : "blocked"}`}>
+      <div className={`review-banner ${summary.readyForApproval && evidenceAudit.valid ? "ready" : "blocked"}`}>
         <strong>
-          {summary.readyForApproval
+          {summary.readyForApproval && evidenceAudit.valid
             ? "Proyecto listo para decisión profesional."
-            : "Aún existen etapas técnicas pendientes."}
+            : "Aún existen etapas técnicas o vínculos de evidencia pendientes."}
         </strong>
         <span>
           La aprobación profesional no sustituye ni automatiza la declaración en
@@ -49,6 +58,21 @@ export function ReviewForm({
             </div>
           </div>
         ))}
+        <div className="review-check">
+          <span className={`review-icon ${evidenceAudit.valid ? "done" : "pending"}`}>
+            {evidenceAudit.valid ? "✓" : "!"}
+          </span>
+          <div>
+            <strong>Integridad de evidencia</strong>
+            <small>
+              {evidenceAudit.checking
+                ? "Verificando archivos vinculados..."
+                : evidenceAudit.valid
+                  ? "Todos los vínculos requeridos apuntan a archivos locales existentes."
+                  : evidenceAudit.issues.join(" · ")}
+            </small>
+          </div>
+        </div>
       </div>
 
       <div className="form-grid">
@@ -83,7 +107,7 @@ export function ReviewForm({
         <button
           type="button"
           className="primary"
-          disabled={!summary.readyForApproval || !draft.review.reviewerName.trim()}
+          disabled={!canApprove}
           onClick={() => setApproved(true)}
         >
           Aprobar profesionalmente
