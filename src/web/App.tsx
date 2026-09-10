@@ -20,6 +20,8 @@ import {
 } from "./te1-form-model.js";
 import { validateFormStep } from "./te1-form-validation.js";
 import { DrawingPreview } from "./DrawingPreview.js";
+import { createProjectId } from "./project-storage.js";
+import { useProjectStorage } from "./use-project-storage.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -31,6 +33,8 @@ export function App() {
   const [draft, setDraft] = useState<TE1FormDraft>(() =>
     createCasaGoyoDemoDraft()
   );
+  const [saveNotice, setSaveNotice] = useState("");
+  const projectStorage = useProjectStorage();
 
   const checklist = useMemo(
     () => buildMinimumFieldChecklist(casaGoyoFieldIntake),
@@ -44,9 +48,29 @@ export function App() {
   const manifest = useMemo(() => buildProjectManifest(liveProject), [liveProject]);
 
   const startProject = (demo: boolean) => {
+    const projectId = demo ? casaGoyoReference.id : createProjectId();
     setDraft(demo ? createCasaGoyoDemoDraft() : createEmptyTE1FormDraft());
-    setWizard(createTE1Wizard(demo ? casaGoyoReference.id : "TE1-DRAFT"));
+    setWizard(createTE1Wizard(projectId));
+    setSaveNotice("");
     setMode("te1");
+  };
+
+  const openStoredProject = (projectId: string) => {
+    const stored = projectStorage.load(projectId);
+    if (!stored) return;
+    setDraft(stored.draft);
+    setWizard(stored.wizard);
+    setSaveNotice("");
+    setMode("te1");
+  };
+
+  const saveProject = () => {
+    projectStorage.save(wizard.projectId, draft, wizard);
+    setSaveNotice("Proyecto guardado localmente en este navegador.");
+  };
+
+  const deleteProject = (projectId: string) => {
+    projectStorage.remove(projectId);
   };
 
   if (mode === "home") {
@@ -92,6 +116,48 @@ export function App() {
               <small>Próxima fase · Fotovoltaico y RGR.</small>
             </button>
           </div>
+          {projectStorage.projects.length > 0 && (
+            <div className="saved-projects-block">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">PROYECTOS GUARDADOS</p>
+                  <h3>Continuar trabajo</h3>
+                </div>
+                <span className="status-pill">
+                  {projectStorage.projects.length}
+                </span>
+              </div>
+
+              <div className="saved-projects-list">
+                {projectStorage.projects.map((project) => (
+                  <div className="saved-project-row" key={project.projectId}>
+                    <button
+                      className="saved-project-main"
+                      onClick={() => openStoredProject(project.projectId)}
+                    >
+                      <strong>{project.name}</strong>
+                      <small>{project.projectId}</small>
+                      <span>
+                        Última actualización: {formatStoredDate(project.updatedAt)}
+                      </span>
+                    </button>
+                    <button
+                      className="danger-link saved-delete"
+                      onClick={() => deleteProject(project.projectId)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <p className="storage-note">
+                Guardado local v1: permanece en este navegador. No sincroniza
+                todavía con nube y no almacena archivos adjuntos, solo los datos
+                y referencias ingresadas.
+              </p>
+            </div>
+          )}
         </section>
       </main>
     );
@@ -128,8 +194,14 @@ export function App() {
             TE1 · {wizard.projectId === casaGoyoReference.id ? "PROYECTO DE REFERENCIA" : "NUEVO PROYECTO"}
           </p>
           <h1>{draft.project.name || "Nuevo proyecto TE1"}</h1>
+          <small className="project-id-label">{wizard.projectId}</small>
         </div>
-        <span className="status-pill warning">Borrador</span>
+        <div className="header-actions">
+          <button className="save-button" onClick={saveProject}>
+            Guardar proyecto
+          </button>
+          <span className="status-pill warning">Borrador</span>
+        </div>
       </header>
 
       <div className="workspace">
@@ -159,6 +231,7 @@ export function App() {
         </aside>
 
         <section className="content-column">
+          {saveNotice && <div className="save-notice">{saveNotice}</div>}
           <div className="section-card">
             <div className="section-heading">
               <div>
@@ -263,4 +336,13 @@ function destinationLabel(value: TE1FormDraft["project"]["destination"]): string
   if (value === "casa-habitacion") return "Casa habitación";
   if (value === "departamento") return "Departamento";
   return "Otro";
+}
+
+function formatStoredDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("es-CL", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(date);
 }
