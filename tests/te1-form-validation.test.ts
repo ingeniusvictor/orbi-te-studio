@@ -40,4 +40,39 @@ describe("TE1 editable wizard form validation", () => {
     const draft = createCasaGoyoDemoDraft();
     expect(validateFormStep("board", draft).valid).toBe(true);
   });
+
+  it("accepts Casa Goyo observed circuit descriptions and breakers", () => {
+    const draft = createCasaGoyoDemoDraft();
+    expect(validateFormStep("circuits", draft).valid).toBe(true);
+  });
+
+  it("keeps Casa Goyo loads pending instead of inventing watts", () => {
+    const draft = createCasaGoyoDemoDraft();
+    const result = validateFormStep("loads", draft);
+
+    expect(result.valid).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.includes("potencia instalada"))
+    ).toBe(true);
+  });
+
+  it("keeps Casa Goyo conductors pending until verified", () => {
+    const draft = createCasaGoyoDemoDraft();
+    const result = validateFormStep("conductors", draft);
+
+    expect(result.valid).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.includes("conductor aún no verificado"))
+    ).toBe(true);
+  });
+
+  it("accepts loads after real values are entered", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.circuits = draft.circuits.map((circuit, index) => ({
+      ...circuit,
+      installedPowerW: String((index + 1) * 1000)
+    }));
+
+    expect(validateFormStep("loads", draft).valid).toBe(true);
+  });
 });
