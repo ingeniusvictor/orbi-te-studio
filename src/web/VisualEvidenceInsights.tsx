@@ -226,7 +226,7 @@ export function VisualEvidenceInsights({
                             revisionFingerprint:
                               technicalDraftFingerprint(nextDraft),
                             details:
-                              `${proposal.target}=${proposal.proposedValue}; evidenceId=${proposal.evidenceId}; confidence=${proposal.confidence}`
+                              `${proposal.target}=${proposal.proposedValue}; evidenceId=${proposal.evidenceId}; confidence=${proposal.confidence}; provider=${result?.provider ?? "unknown"}; model=${result?.model ?? "unknown"}`
                           }
                         );
                       }
