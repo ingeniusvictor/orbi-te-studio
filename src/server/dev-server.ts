@@ -8,6 +8,8 @@ import { buildProjectEvidenceReport } from "./project-evidence-report.js";
 import { buildTE1PhotographicReport } from "./te1-photographic-report.js";
 import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
 import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput } from "./te1-package-index.js";
+import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gate.js";
+import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -102,6 +104,8 @@ const server = createServer(async (request, response) => {
             sha256: string;
           }>;
         }).evidenceReceipts;
+      const evidenceManifestJson =
+        (payload as { evidenceManifestJson?: string }).evidenceManifestJson;
 
       if (!draft) {
         json(response, 422, {
@@ -124,10 +128,40 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      if (!evidenceManifestJson?.trim()) {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_REQUEST",
+          message: "La generación TE1 requiere evidence manifest.",
+          issues: ["evidenceManifestJson es obligatorio."]
+        });
+        return;
+      }
+
+      let evidenceManifest: EvidenceManifest;
+      try {
+        evidenceManifest = JSON.parse(
+          evidenceManifestJson
+        ) as EvidenceManifest;
+      } catch {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_REQUEST",
+          message: "El evidence manifest no contiene JSON válido.",
+          issues: ["evidenceManifestJson inválido."]
+        });
+        return;
+      }
+
       const receiptIssues = [
         ...auditReceiptCoverage(draft, evidenceReceipts),
         ...validateEvidenceVerificationReceipts(
           projectId,
+          evidenceReceipts
+        ),
+        ...validateEvidenceManifestAgainstReceipts(
+          projectId,
+          evidenceManifest,
           evidenceReceipts
         )
       ];
@@ -178,6 +212,12 @@ const server = createServer(async (request, response) => {
           mimeType: photographicReport.mimeType,
           encoding: "base64",
           content: Buffer.from(photographicReport.bytes).toString("base64")
+        },
+        {
+          filename: `${projectId}_TE1_evidence_manifest.json`,
+          mimeType: "application/json",
+          encoding: "utf8",
+          content: JSON.stringify(evidenceManifest, null, 2)
         },
         {
           filename: `${projectId}_TE1_server_verification_manifest.json`,
