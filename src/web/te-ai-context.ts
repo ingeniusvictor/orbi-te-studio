@@ -10,6 +10,7 @@ export function buildTEAssistantContext(
     `Destino: ${draft.project.destination}`,
     `Sistema: ${draft.project.system}`,
     `Tensión nominal declarada: ${draft.project.voltageV || "PENDIENTE"} V`,
+    `Superficie vivienda: ${draft.project.surfaceM2 ? `${draft.project.surfaceM2} m²` : "PENDIENTE"}`,
     `Comuna: ${draft.location.commune || "PENDIENTE"}`,
     `Región: ${draft.location.region || "PENDIENTE"}`,
     `Tablero: ${draft.board.name || "PENDIENTE"}`,
