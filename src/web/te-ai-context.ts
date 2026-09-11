@@ -1,9 +1,16 @@
 import type { TE1FormDraft } from "./te1-form-model.js";
+import { draftToTE1Project } from "./draft-to-project.js";
+import { validateTE1 } from "../engine/validate-te1.js";
+import { buildComplianceSummary } from "./compliance-summary.js";
 
 export function buildTEAssistantContext(
   projectId: string,
   draft: TE1FormDraft
 ): string {
+  const project = draftToTE1Project(draft, projectId);
+  const engineering = validateTE1(project);
+  const compliance = buildComplianceSummary(draft);
+
   const lines = [
     `Project ID: ${projectId}`,
     `Proyecto: ${draft.project.name || "PENDIENTE"}`,
@@ -54,6 +61,35 @@ export function buildTEAssistantContext(
     );
   }
 
+  const engineeringBlockers = engineering.findings.filter(
+    (finding) => finding.severity === "blocker"
+  );
+  lines.push(
+    `Blockers deterministas TE1: ${engineeringBlockers.length}`
+  );
+  for (const finding of engineeringBlockers.slice(0, 12)) {
+    lines.push(
+      `BLOCKER ${finding.code}: ${finding.message}`
+    );
+  }
+
+  const compliancePending = compliance.items.filter(
+    (item) =>
+      item.status === "blocker" ||
+      item.status === "not-verifiable"
+  );
+  lines.push(
+    `Reglas RIC bloqueantes/no verificables: ${compliancePending.length}`
+  );
+  for (const item of compliancePending.slice(0, 12)) {
+    lines.push(
+      `RIC ${item.ruleId} [${item.status}]: ${item.message}`
+    );
+  }
+
+  lines.push(
+    "Nota de control: los hallazgos anteriores provienen de motores deterministas ORBI; la IA solo puede explicarlos, no modificarlos."
+  );
   lines.push(
     "Nota de privacidad: este contexto técnico excluye nombre y RUT del propietario."
   );
