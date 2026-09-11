@@ -10,6 +10,7 @@ export interface QwenVisionProviderOptions {
   baseUrl?: string;
   model?: string;
   timeoutMs?: number;
+  keepAlive?: string;
   fetchImpl?: typeof fetch;
 }
 
@@ -27,6 +28,7 @@ export class QwenVisionProvider implements VisionProvider {
 
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
+  private readonly keepAlive: string;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: QwenVisionProviderOptions = {}) {
@@ -34,6 +36,7 @@ export class QwenVisionProvider implements VisionProvider {
       .replace(/\/+$/, "");
     this.model = options.model ?? "qwen2.5vl:3b";
     this.timeoutMs = options.timeoutMs ?? 120_000;
+    this.keepAlive = options.keepAlive ?? "0";
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -107,6 +110,7 @@ export class QwenVisionProvider implements VisionProvider {
       body: JSON.stringify({
         model: this.model,
         stream: false,
+        keep_alive: this.keepAlive,
         format: "json",
         messages: [
           {
