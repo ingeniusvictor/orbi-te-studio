@@ -11,8 +11,10 @@ import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput 
 import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gate.js";
 import { buildTE1PackageZip } from "./te1-package-zip.js";
 import { buildTE1PackageReadme } from "./te1-package-readme.js";
+import { appendServerPackageGeneratedEvent, projectAuditHistoryToJson, validateProjectAuditHistory } from "./project-audit-history.js";
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
+import type { ProjectAuditHistory } from "../web/audit-log.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MAX_BODY_BYTES = 30 * 1024 * 1024;
@@ -108,6 +110,8 @@ const server = createServer(async (request, response) => {
         }).evidenceReceipts;
       const evidenceManifestJson =
         (payload as { evidenceManifestJson?: string }).evidenceManifestJson;
+      const auditHistoryJson =
+        (payload as { auditHistoryJson?: string }).auditHistoryJson;
 
       if (!draft) {
         json(response, 422, {
@@ -151,6 +155,47 @@ const server = createServer(async (request, response) => {
           code: "INVALID_REQUEST",
           message: "El evidence manifest no contiene JSON válido.",
           issues: ["evidenceManifestJson inválido."]
+        });
+        return;
+      }
+
+      if (!auditHistoryJson?.trim()) {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_REQUEST",
+          message: "La generación TE1 requiere historial de auditoría.",
+          issues: ["auditHistoryJson es obligatorio."]
+        });
+        return;
+      }
+
+      let auditHistory: ProjectAuditHistory;
+      try {
+        auditHistory = JSON.parse(
+          auditHistoryJson
+        ) as ProjectAuditHistory;
+      } catch {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_REQUEST",
+          message: "El historial de auditoría no contiene JSON válido.",
+          issues: ["auditHistoryJson inválido."]
+        });
+        return;
+      }
+
+      const auditValidation = validateProjectAuditHistory(
+        projectId,
+        draft,
+        auditHistory
+      );
+      if (!auditValidation.valid) {
+        json(response, 422, {
+          ok: false,
+          code: "AUDIT_HISTORY_INVALID",
+          message:
+            "El historial de auditoría no es válido para la revisión técnica actual.",
+          issues: auditValidation.issues
         });
         return;
       }
@@ -201,6 +246,12 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      const extendedAuditHistory = appendServerPackageGeneratedEvent(
+        projectId,
+        draft,
+        auditHistory
+      );
+
       const packageArtifacts: PackageArtifactInput[] = [
         ...result.artifacts,
         {
@@ -227,6 +278,14 @@ const server = createServer(async (request, response) => {
           encoding: "utf8",
           content: serverEvidenceVerificationManifestToJson(
             verificationManifest
+          )
+        },
+        {
+          filename: `${projectId}_TE1_audit_history.json`,
+          mimeType: "application/json",
+          encoding: "utf8",
+          content: projectAuditHistoryToJson(
+            extendedAuditHistory
           )
         }
       ];
@@ -267,6 +326,7 @@ const server = createServer(async (request, response) => {
 
       json(response, 200, {
         ...result,
+        auditHistory: extendedAuditHistory,
         artifacts: [
           {
             filename: packageZip.filename,
