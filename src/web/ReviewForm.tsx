@@ -27,7 +27,10 @@ export function ReviewForm({
   const setApproved = (approved: boolean) => {
     update({
       approved,
-      approvedAt: approved ? new Date().toISOString() : ""
+      approvedAt: approved ? new Date().toISOString() : "",
+      invalidated: false,
+      invalidatedAt: "",
+      invalidationReason: ""
     });
   };
 
@@ -119,13 +122,11 @@ export function ReviewForm({
           <span>{draft.review.reviewerName}</span>
           <small>{draft.review.approvedAt}</small>
         </div>
-      ) : draft.review.approvedAt === "" && draft.review.reviewerName.trim() ? (
+      ) : draft.review.invalidated ? (
         <div className="approval-record warning">
-          <strong>APROBACIÓN NO VIGENTE</strong>
-          <span>
-            Si el proyecto fue aprobado previamente, cualquier cambio técnico,
-            de revisor o de notas exige una nueva aprobación.
-          </span>
+          <strong>APROBACIÓN INVALIDADA</strong>
+          <span>{draft.review.invalidationReason}</span>
+          <small>{draft.review.invalidatedAt}</small>
         </div>
       ) : null}
     </div>
