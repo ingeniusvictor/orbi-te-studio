@@ -5,6 +5,7 @@ import { consumeEvidenceVerificationReceipts, createEvidenceVerificationReceipt,
 import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
 import { buildProjectEvidenceReport } from "./project-evidence-report.js";
+import { buildTE1PhotographicReport } from "./te1-photographic-report.js";
 import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
@@ -151,6 +152,11 @@ const server = createServer(async (request, response) => {
         draft,
         evidenceReceipts
       );
+      const photographicReport = await buildTE1PhotographicReport(
+        projectId,
+        draft,
+        evidenceReceipts
+      );
 
       const result = await generateTE1FromDraft(draft, projectId);
       if (!result.ok) {
@@ -173,6 +179,12 @@ const server = createServer(async (request, response) => {
             mimeType: evidenceReport.mimeType,
             encoding: "base64",
             content: Buffer.from(evidenceReport.bytes).toString("base64")
+          },
+          {
+            filename: photographicReport.filename,
+            mimeType: photographicReport.mimeType,
+            encoding: "base64",
+            content: Buffer.from(photographicReport.bytes).toString("base64")
           },
           {
             filename: `${projectId}_TE1_server_verification_manifest.json`,
