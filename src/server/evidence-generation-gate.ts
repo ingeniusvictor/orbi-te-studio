@@ -6,21 +6,51 @@ export interface EvidenceReceiptRef {
   sha256: string;
 }
 
-export function requiredEvidenceIdsFromDraft(
+export interface EvidenceRoleRef {
+  evidenceId: string;
+  role: string;
+}
+
+export function evidenceRolesFromDraft(
   draft: TE1FormDraft
-): string[] {
-  const ids = [
-    draft.board.frontalEvidenceId,
-    draft.location.locationSketchEvidenceId,
-    draft.plan.sourceEvidenceId,
-    ...draft.measurements.map((measurement) => measurement.evidenceId)
+): EvidenceRoleRef[] {
+  const refs: EvidenceRoleRef[] = [
+    {
+      evidenceId: draft.board.frontalEvidenceId,
+      role: "board.front"
+    },
+    {
+      evidenceId: draft.location.locationSketchEvidenceId,
+      role: "location.sketch"
+    },
+    {
+      evidenceId: draft.plan.sourceEvidenceId,
+      role: "plan.source"
+    },
+    ...draft.measurements.map((measurement) => ({
+      evidenceId: measurement.evidenceId,
+      role: `measurement.${measurement.kind}`
+    }))
   ];
 
   if (draft.board.legendEvidenceId) {
-    ids.push(draft.board.legendEvidenceId);
+    refs.push({
+      evidenceId: draft.board.legendEvidenceId,
+      role: "board.legend"
+    });
   }
 
-  return [...new Set(ids.filter((id) => id.trim().length > 0))];
+  return refs.filter((ref) => ref.evidenceId.trim().length > 0);
+}
+
+export function requiredEvidenceIdsFromDraft(
+  draft: TE1FormDraft
+): string[] {
+  return [
+    ...new Set(
+      evidenceRolesFromDraft(draft).map((ref) => ref.evidenceId)
+    )
+  ];
 }
 
 export function auditReceiptCoverage(
