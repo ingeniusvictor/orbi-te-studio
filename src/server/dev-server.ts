@@ -6,7 +6,7 @@ import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
 import { buildProjectEvidenceReport } from "./project-evidence-report.js";
 import { buildTE1PhotographicReport } from "./te1-photographic-report.js";
-import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
+import { consumeVerifiedEvidenceBuffers, pruneExpiredVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
 import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput } from "./te1-package-index.js";
 import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gate.js";
 import { buildTE1PackageZip } from "./te1-package-zip.js";
@@ -43,6 +43,7 @@ const server = createServer(async (request, response) => {
 
   if (request.method === "POST" && request.url === "/api/te1/evidence/verify") {
     try {
+      pruneExpiredVerifiedEvidenceBuffers();
       const payload = await readJsonBody(request);
       const requestValidation = validateEvidenceVerifyRequest(payload);
       if (!requestValidation.ok || !requestValidation.value) {
@@ -76,7 +77,8 @@ const server = createServer(async (request, response) => {
             if (upload) {
               storeVerifiedEvidenceBuffer(
                 receipt.token,
-                upload.contentBase64
+                upload.contentBase64,
+                receipt.expiresAt
               );
             }
             return receipt;
@@ -99,6 +101,7 @@ const server = createServer(async (request, response) => {
 
   if (request.method === "POST" && request.url === "/api/te1/generate") {
     try {
+      pruneExpiredVerifiedEvidenceBuffers();
       const payload = await readJsonBody(request);
       const requestValidation = validateGenerateTE1Request(payload);
       if (!requestValidation.ok || !requestValidation.value) {
