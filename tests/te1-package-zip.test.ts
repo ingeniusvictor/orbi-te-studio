@@ -28,6 +28,11 @@ describe("TE1 organized ZIP package", () => {
       "04_Integridad/TE1_TE1_audit_history.json"
     );
     expect(
+      packagePathForArtifact("TE1_TE1_server_audit_ledger.json")
+    ).toBe(
+      "04_Integridad/TE1_TE1_server_audit_ledger.json"
+    );
+    expect(
       packagePathForArtifact("TE1_TE1_package_index.json")
     ).toBe(
       "04_Integridad/TE1_TE1_package_index.json"
