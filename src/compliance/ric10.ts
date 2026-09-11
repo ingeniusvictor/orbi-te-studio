@@ -152,5 +152,98 @@ export const ric10Rules: ComplianceRule[] = [
         message: `Se registran ${project.circuits.length} circuitos dependientes del diferencial.`
       };
     }
+  },
+  {
+    id: "RIC10-5.2-DWELLING-MIN-MAIN-25A",
+    title: "Protección mínima del empalme en vivienda",
+    projectType: "TE1",
+    severity: "blocker",
+    source: {
+      authority: "SEC",
+      document: "Pliego Técnico Normativo RIC N°10 - Instalaciones de uso general",
+      section: "5.2",
+      url: SOURCE_URL,
+      verifiedAt: VERIFIED_AT
+    },
+    evaluate(project) {
+      if (
+        project.destination !== "casa-habitacion" &&
+        project.destination !== "departamento"
+      ) {
+        return {
+          status: "pass",
+          message: "La regla específica de vivienda no aplica al destino registrado."
+        };
+      }
+
+      if (!project.mainProtection) {
+        return {
+          status: "not-verifiable",
+          message:
+            "No existe información suficiente de la protección principal para verificar el mínimo de vivienda."
+        };
+      }
+
+      if (project.mainProtection.ratedCurrentA < 25) {
+        return {
+          status: "blocker",
+          message:
+            `La protección principal registrada es ${project.mainProtection.ratedCurrentA} A; para vivienda se requiere verificar un mínimo de 25 A según RIC N°10 § 5.2.`
+        };
+      }
+
+      return {
+        status: "pass",
+        message:
+          `Protección principal de vivienda registrada: ${project.mainProtection.ratedCurrentA} A.`
+      };
+    }
+  },
+  {
+    id: "RIC10-5.2-DWELLING-MIN-CIRCUITS",
+    title: "Cantidad mínima de circuitos en vivienda según superficie",
+    projectType: "TE1",
+    severity: "blocker",
+    source: {
+      authority: "SEC",
+      document: "Pliego Técnico Normativo RIC N°10 - Instalaciones de uso general",
+      section: "5.2",
+      url: SOURCE_URL,
+      verifiedAt: VERIFIED_AT
+    },
+    evaluate(project) {
+      if (
+        project.destination !== "casa-habitacion" &&
+        project.destination !== "departamento"
+      ) {
+        return {
+          status: "pass",
+          message: "La regla específica de vivienda no aplica al destino registrado."
+        };
+      }
+
+      if (project.surfaceM2 === undefined) {
+        return {
+          status: "not-verifiable",
+          message:
+            "Falta registrar la superficie de la vivienda para verificar la cantidad mínima de circuitos."
+        };
+      }
+
+      const requiredCircuits = project.surfaceM2 < 30 ? 2 : 3;
+      if (project.circuits.length < requiredCircuits) {
+        return {
+          status: "blocker",
+          message:
+            `Vivienda de ${project.surfaceM2} m²: se registran ${project.circuits.length} circuitos y se requieren al menos ${requiredCircuits} para esta verificación.`
+        };
+      }
+
+      return {
+        status: "pass",
+        message:
+          `Vivienda de ${project.surfaceM2} m²: se registran ${project.circuits.length} circuitos; mínimo verificado: ${requiredCircuits}.`
+      };
+    }
   }
 ];
