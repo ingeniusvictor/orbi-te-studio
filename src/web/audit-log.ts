@@ -141,6 +141,32 @@ export function projectAuditHistoryToJson(
   return JSON.stringify(history, null, 2);
 }
 
+export function replaceProjectAuditHistory(
+  storage: StorageLike,
+  history: ProjectAuditHistory
+): void {
+  const envelope = decodeAuditEnvelope(storage.getItem(AUDIT_STORE_KEY));
+  const otherEvents = envelope.events.filter(
+    (event) => event.projectId !== history.projectId
+  );
+
+  storage.setItem(
+    AUDIT_STORE_KEY,
+    JSON.stringify({
+      schemaVersion: AUDIT_SCHEMA_VERSION,
+      events: [...otherEvents, ...history.events]
+    } satisfies AuditEnvelope)
+  );
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("orbi:audit-changed", {
+        detail: { projectId: history.projectId }
+      })
+    );
+  }
+}
+
 export async function validateProjectAuditChain(
   storage: StorageLike,
   projectId: string
