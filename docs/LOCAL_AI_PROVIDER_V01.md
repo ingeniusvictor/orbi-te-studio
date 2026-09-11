@@ -81,3 +81,36 @@ than assuming both remain resident in memory.
 With Ollama and the required local models installed, this architecture does not
 require a paid external AI API. The rest of TE1/TE4 generation continues to work
 without the AI provider because the deterministic core remains independent.
+
+
+## Verified-evidence vision flow
+
+The local vision endpoint is opt-in and disabled by default:
+
+```
+ORBI_VISION_PROVIDER=qwen-vision-local
+ORBI_QWEN_VISION_MODEL=qwen2.5vl:3b
+```
+
+Endpoints:
+
+```
+GET  /api/ai/vision/health
+POST /api/ai/vision/analyze
+```
+
+Vision analysis cannot receive arbitrary unverified image bytes directly. The
+request must reference an active server verification receipt. ORBI checks:
+
+1. receipt exists and is not expired;
+2. receipt belongs to the project;
+3. evidence id matches;
+4. verified SHA-256 receipt is valid;
+5. MIME is JPEG, PNG or WEBP;
+6. verified bytes are still present in the temporary server buffer.
+
+Only then are the already-verified bytes sent to the local visual model.
+
+The visual model returns proposals/observations only. Unsupported model statuses
+are downgraded to `PENDING`; the visual provider has no direct write path into
+the TE1/TE4 draft.
