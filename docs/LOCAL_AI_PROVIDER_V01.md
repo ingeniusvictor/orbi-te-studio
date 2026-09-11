@@ -35,10 +35,10 @@ Local Qwen through Ollama:
 ```
 ORBI_AI_PROVIDER=qwen-local
 ORBI_QWEN_BASE_URL=http://127.0.0.1:11434
-ORBI_QWEN_MODEL=qwen3:8b
+ORBI_QWEN_MODEL=qwen3:1.7b
 ```
 
-The provider uses the local Ollama chat endpoint with streaming disabled.
+The provider uses the local Ollama chat endpoint with streaming and Qwen thinking disabled. ORBI keeps engineering calculations and decisions in its deterministic engines, so the local model is optimized for interpretation and explanation rather than hidden reasoning.
 
 ## API
 
