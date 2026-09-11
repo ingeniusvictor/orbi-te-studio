@@ -16,12 +16,18 @@ import { appendServerPackageEvent, serverAuditLedgerForProject, serverAuditLedge
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { ProjectAuditHistory } from "../web/audit-log.js";
 import { validateEvidenceVerifyRequest, validateGenerateTE1Request } from "./runtime-payload-validation.js";
+import { createAIProviderFromEnv } from "../ai/provider-registry.js";
+import { TEAssistantService } from "../ai/te-assistant.js";
+import { validateTEAssistantRequest } from "./ai-runtime-validation.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MAX_BODY_BYTES = 30 * 1024 * 1024;
 const SERVER_AUDIT_LEDGER_PATH =
   process.env.ORBI_AUDIT_LEDGER_PATH ??
   `${process.cwd()}/.orbi-data/server-audit-ledger.json`;
+
+const AI_PROVIDER = createAIProviderFromEnv();
+const TE_ASSISTANT = new TEAssistantService(AI_PROVIDER);
 
 const server = createServer(async (request, response) => {
   setCors(response);
@@ -39,6 +45,50 @@ const server = createServer(async (request, response) => {
       version: "0.1"
     });
     return;
+  }
+
+  if (request.method === "GET" && request.url === "/api/ai/health") {
+    const health = await TE_ASSISTANT.health();
+    json(response, health.ready ? 200 : 503, {
+      ok: health.ready,
+      ...health
+    });
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/api/ai/chat") {
+    try {
+      const payload = await readJsonBody(request);
+      const validation = validateTEAssistantRequest(payload);
+      if (!validation.ok || !validation.value) {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_AI_REQUEST",
+          message: "La solicitud al asistente local no es válida.",
+          issues: validation.issues
+        });
+        return;
+      }
+
+      const result = await TE_ASSISTANT.chat(validation.value);
+      json(response, 200, {
+        ok: true,
+        ...result
+      });
+      return;
+    } catch (error) {
+      json(response, 503, {
+        ok: false,
+        code: "LOCAL_AI_UNAVAILABLE",
+        message: "El proveedor IA local no pudo responder.",
+        issues: [
+          error instanceof Error
+            ? error.message
+            : "Error desconocido"
+        ]
+      });
+      return;
+    }
   }
 
   if (request.method === "POST" && request.url === "/api/te1/evidence/verify") {
