@@ -28,9 +28,6 @@ describe("professional review integrity", () => {
     expect(result.invalidated).toBe(true);
     expect(result.draft.review.approved).toBe(false);
     expect(result.draft.review.invalidated).toBe(true);
-    expect(result.draft.review.invalidatedAt).toBe(
-      "2026-09-11T03:05:00.000Z"
-    );
     expect(result.draft.review.approvedAt).toBe("");
     expect(result.draft.review.invalidated).toBe(true);
     expect(result.draft.review.invalidatedAt).toBe(
