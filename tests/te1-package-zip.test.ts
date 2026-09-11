@@ -6,6 +6,9 @@ import {
 
 describe("TE1 organized ZIP package", () => {
   it("classifies package artifacts into deterministic folders", () => {
+    expect(packagePathForArtifact("LEEME_ORBI_TE1.txt")).toBe(
+      "LEEME_ORBI_TE1.txt"
+    );
     expect(packagePathForArtifact("Casa_TE1_A2.pdf")).toBe(
       "01_Planos/Casa_TE1_A2.pdf"
     );
