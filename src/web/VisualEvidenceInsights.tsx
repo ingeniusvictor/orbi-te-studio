@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getEvidenceBlob } from "./evidence-store.js";
-import { buildTE1VisionProposals } from "../ai/vision-observation-proposals.js";
+import { applyTE1VisionProposal, buildTE1VisionProposals } from "../ai/vision-observation-proposals.js";
+import type { TE1FormDraft } from "./te1-form-model.js";
 import type {
   EvidenceCategory,
   LocalEvidenceMetadata
@@ -18,10 +19,14 @@ import {
 
 export function VisualEvidenceInsights({
   projectId,
-  item
+  item,
+  draft,
+  onDraftChange
 }: {
   projectId: string;
   item: LocalEvidenceMetadata;
+  draft: TE1FormDraft;
+  onDraftChange: (draft: TE1FormDraft) => void;
 }) {
   const [health, setHealth] =
     useState<LocalVisionHealth | null>(null);
@@ -195,8 +200,19 @@ export function VisualEvidenceInsights({
                   <span>{proposal.target}</span>
                   <b>{proposal.proposedValue}</b>
                   <small>
-                    {proposal.confidence} · no aplicado automáticamente
+                    {proposal.confidence} · requiere aceptación manual
                   </small>
+                  <button
+                    type="button"
+                    className="secondary compact"
+                    onClick={() =>
+                      onDraftChange(
+                        applyTE1VisionProposal(draft, proposal)
+                      )
+                    }
+                  >
+                    Aplicar propuesta
+                  </button>
                 </div>
               ))}
             </div>
