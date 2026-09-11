@@ -142,6 +142,35 @@ describe("persistent server audit ledger", () => {
     );
   });
 
+  it("serializes concurrent package ledger mutations", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "orbi-ledger-"));
+    const file = join(dir, "ledger.json");
+    const history: ProjectAuditHistory = {
+      schemaVersion: 1,
+      projectId: "TE1-1",
+      events: [clientEvent("approved")]
+    };
+
+    await syncClientAuditHistoryToServerLedger(file, history);
+
+    await Promise.all([
+      appendServerPackageEvent(file, {
+        projectId: "TE1-1",
+        actor: "API-A",
+        revisionFingerprint: "a".repeat(64)
+      }),
+      appendServerPackageEvent(file, {
+        projectId: "TE1-1",
+        actor: "API-B",
+        revisionFingerprint: "a".repeat(64)
+      })
+    ]);
+
+    const ledger = await loadServerAuditLedger(file);
+    expect(ledger.events).toHaveLength(3);
+    expect(validateServerLedgerChain(ledger, "TE1-1")).toEqual([]);
+  });
+
   it("loads only the selected project for package export", async () => {
     const dir = await mkdtemp(join(tmpdir(), "orbi-ledger-"));
     const file = join(dir, "ledger.json");
