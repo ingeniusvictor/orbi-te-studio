@@ -113,6 +113,14 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
         : {})
     },
     {
+      id: "audit-history",
+      label: "Historial de auditoría del proyecto",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Requiere aprobación profesional vigente y cadena válida." }
+        : {})
+    },
+    {
       id: "package-index",
       label: "Índice SHA-256 del paquete",
       status: approvedForPreparation ? "ready-to-generate" : "pending",
