@@ -36,6 +36,10 @@ export function buildTE1PackageZip(
 export function packagePathForArtifact(filename: string): string {
   const lower = filename.toLowerCase();
 
+  if (lower === "leeme_orbi_te1.txt") {
+    return filename;
+  }
+
   if (
     lower.endsWith("_te1_a2.pdf") ||
     lower.endsWith("_te1_a2.svg")
