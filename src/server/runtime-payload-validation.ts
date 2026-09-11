@@ -342,7 +342,8 @@ function validateDraft(
 
   const sourceType = stringField(plan, "sourceType", issues, {
     prefix: "draft.plan",
-    max: 40
+    max: 40,
+    required: false
   });
   if (!PLAN_SOURCE_TYPES.has(sourceType)) {
     issues.push("draft.plan.sourceType no es válido.");
