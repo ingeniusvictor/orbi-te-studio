@@ -65,12 +65,21 @@ function verifyOne(
     issues.push("expectedSha256 no es un SHA-256 hexadecimal válido.");
   }
 
-  let bytes: Buffer;
-  try {
-    bytes = Buffer.from(upload.contentBase64, "base64");
-  } catch {
-    bytes = Buffer.alloc(0);
-    issues.push("contentBase64 no es válido.");
+  let bytes = Buffer.alloc(0);
+  const normalizedBase64 = upload.contentBase64.trim();
+  const base64Valid =
+    normalizedBase64.length > 0 &&
+    normalizedBase64.length % 4 === 0 &&
+    /^[A-Za-z0-9+/]*={0,2}$/.test(normalizedBase64);
+
+  if (!base64Valid) {
+    issues.push("contentBase64 no es Base64 canónico válido.");
+  } else {
+    bytes = Buffer.from(normalizedBase64, "base64");
+    const canonical = bytes.toString("base64");
+    if (canonical !== normalizedBase64) {
+      issues.push("contentBase64 no es Base64 canónico válido.");
+    }
   }
 
   if (bytes.byteLength <= 0) {
