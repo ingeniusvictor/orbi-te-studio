@@ -9,6 +9,9 @@ export interface EvidenceVerificationReceipt {
   sha256: string;
   verifiedAt: string;
   expiresAt: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
 }
 
 const receipts = new Map<string, EvidenceVerificationReceipt>();
@@ -17,7 +20,12 @@ export function createEvidenceVerificationReceipt(
   projectId: string,
   evidenceId: string,
   sha256: string,
-  now = new Date()
+  now = new Date(),
+  metadata: {
+    filename?: string;
+    mimeType?: string;
+    sizeBytes?: number;
+  } = {}
 ): EvidenceVerificationReceipt {
   const receipt: EvidenceVerificationReceipt = {
     token: randomUUID(),
@@ -25,7 +33,10 @@ export function createEvidenceVerificationReceipt(
     evidenceId,
     sha256,
     verifiedAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + RECEIPT_TTL_MS).toISOString()
+    expiresAt: new Date(now.getTime() + RECEIPT_TTL_MS).toISOString(),
+    filename: metadata.filename ?? "",
+    mimeType: metadata.mimeType ?? "",
+    sizeBytes: metadata.sizeBytes ?? 0
   };
   receipts.set(receipt.token, receipt);
   return receipt;
