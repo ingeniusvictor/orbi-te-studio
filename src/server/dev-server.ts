@@ -7,6 +7,7 @@ import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationMani
 import { buildProjectEvidenceReport } from "./project-evidence-report.js";
 import { buildTE1PhotographicReport } from "./te1-photographic-report.js";
 import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
+import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput } from "./te1-package-index.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -164,6 +165,44 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      const packageArtifacts: PackageArtifactInput[] = [
+        ...result.artifacts,
+        {
+          filename: evidenceReport.filename,
+          mimeType: evidenceReport.mimeType,
+          encoding: "base64",
+          content: Buffer.from(evidenceReport.bytes).toString("base64")
+        },
+        {
+          filename: photographicReport.filename,
+          mimeType: photographicReport.mimeType,
+          encoding: "base64",
+          content: Buffer.from(photographicReport.bytes).toString("base64")
+        },
+        {
+          filename: `${projectId}_TE1_server_verification_manifest.json`,
+          mimeType: "application/json",
+          encoding: "utf8",
+          content: serverEvidenceVerificationManifestToJson(
+            verificationManifest
+          )
+        }
+      ];
+
+      const packageIndex = buildTE1PackageIndex(
+        projectId,
+        packageArtifacts
+      );
+      const finalArtifacts: PackageArtifactInput[] = [
+        ...packageArtifacts,
+        {
+          filename: `${projectId}_TE1_package_index.json`,
+          mimeType: "application/json",
+          encoding: "utf8",
+          content: te1PackageIndexToJson(packageIndex)
+        }
+      ];
+
       const receiptTokens = evidenceReceipts.map(
         (receipt) => receipt.token
       );
@@ -172,29 +211,7 @@ const server = createServer(async (request, response) => {
 
       json(response, 200, {
         ...result,
-        artifacts: [
-          ...result.artifacts,
-          {
-            filename: evidenceReport.filename,
-            mimeType: evidenceReport.mimeType,
-            encoding: "base64",
-            content: Buffer.from(evidenceReport.bytes).toString("base64")
-          },
-          {
-            filename: photographicReport.filename,
-            mimeType: photographicReport.mimeType,
-            encoding: "base64",
-            content: Buffer.from(photographicReport.bytes).toString("base64")
-          },
-          {
-            filename: `${projectId}_TE1_server_verification_manifest.json`,
-            mimeType: "application/json",
-            encoding: "utf8",
-            content: serverEvidenceVerificationManifestToJson(
-              verificationManifest
-            )
-          }
-        ]
+        artifacts: finalArtifacts
       });
       return;
     } catch (error) {
