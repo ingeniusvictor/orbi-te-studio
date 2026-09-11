@@ -266,14 +266,16 @@ function validateDraft(
   ].forEach(([key, max]) =>
     stringField(project, String(key), issues, {
       prefix: "draft.project",
-      max: Number(max)
+      max: Number(max),
+      required: false
     })
   );
 
   ["name", "rut"].forEach((key) =>
     stringField(owner, key, issues, {
       prefix: "draft.owner",
-      max: 200
+      max: 200,
+      required: false
     })
   );
 
@@ -288,7 +290,8 @@ function validateDraft(
   ].forEach((key) =>
     stringField(location, key, issues, {
       prefix: "draft.location",
-      max: 500
+      max: 500,
+      required: false
     })
   );
   booleanField(
@@ -353,7 +356,8 @@ function validateDraft(
   ].forEach((key) =>
     stringField(plan, key, issues, {
       prefix: "draft.plan",
-      max: 2000
+      max: 2000,
+      required: false
     })
   );
   ["hasElectricalPoints", "hasDimensions", "reviewed"].forEach(
@@ -365,7 +369,8 @@ function validateDraft(
     .forEach((key) =>
       stringField(review, key, issues, {
         prefix: "draft.review",
-        max: 4000
+        max: 4000,
+        required: false
       })
     );
   ["approved", "invalidated"].forEach((key) =>
@@ -432,7 +437,8 @@ function validateMeasurement(
     .forEach((key) =>
       stringField(value, key, issues, {
         prefix,
-        max: 2000
+        max: 2000,
+        required: false
       })
     );
 
