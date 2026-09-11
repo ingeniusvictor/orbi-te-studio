@@ -3,6 +3,7 @@ import { useEvidenceAudit } from "./use-evidence-audit.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 import { applyReviewMetadataChange, technicalDraftFingerprint } from "./review-integrity.js";
 import { appendProjectAuditEvent } from "./audit-log.js";
+import { AuditHistory } from "./AuditHistory.js";
 
 export function ReviewForm({
   draft,
@@ -144,6 +145,8 @@ export function ReviewForm({
           <small>{draft.review.invalidatedAt}</small>
         </div>
       ) : null}
+
+      <AuditHistory projectId={projectId} />
     </div>
   );
 }
