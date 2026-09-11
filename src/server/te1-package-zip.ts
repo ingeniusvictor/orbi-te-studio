@@ -60,6 +60,7 @@ export function packagePathForArtifact(filename: string): string {
 
   if (
     lower.includes("server_verification_manifest") ||
+    lower.includes("server_audit_ledger") ||
     lower.includes("audit_history") ||
     lower.includes("package_index")
   ) {
