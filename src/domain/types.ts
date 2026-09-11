@@ -69,6 +69,7 @@ export interface TE1Project {
   voltageV: number;
   surfaceM2?: number;
   boardName: string;
+  boardTotalWays?: number;
   location: ProjectLocation;
   mainProtection?: Protection;
   differentialProtection?: DifferentialProtection;
