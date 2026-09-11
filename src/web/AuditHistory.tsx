@@ -107,6 +107,9 @@ export function AuditHistory({ projectId }: { projectId: string }) {
 function actionLabel(action: ProjectAuditEvent["action"]): string {
   if (action === "approved") return "Aprobación profesional ORBI";
   if (action === "approval-invalidated") return "Aprobación invalidada";
+  if (action === "ai-proposal-accepted") {
+    return "Propuesta IA aceptada manualmente";
+  }
   return "Paquete TE1 generado";
 }
 
