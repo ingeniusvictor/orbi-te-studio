@@ -111,6 +111,14 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
       ...(!approvedForPreparation
         ? { reason: "Se genera después de verificar SHA-256 en servidor." }
         : {})
+    },
+    {
+      id: "package-index",
+      label: "Índice SHA-256 del paquete",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Se genera junto con el paquete técnico final." }
+        : {})
     }
   ];
 
