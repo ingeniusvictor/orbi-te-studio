@@ -2,7 +2,8 @@ import type {
   VisionAnalysisResult,
   VisionEvidenceInput,
   VisionObservation,
-  VisionProvider
+  VisionProvider,
+  VisionProviderHealth
 } from "./vision-provider.js";
 
 export interface QwenVisionProviderOptions {
@@ -34,6 +35,55 @@ export class QwenVisionProvider implements VisionProvider {
     this.model = options.model ?? "qwen2.5vl:3b";
     this.timeoutMs = options.timeoutMs ?? 120_000;
     this.fetchImpl = options.fetchImpl ?? fetch;
+  }
+
+  async health(): Promise<VisionProviderHealth> {
+    try {
+      const response = await this.request("/api/tags", {
+        method: "GET"
+      });
+      if (!response.ok) {
+        return {
+          provider: this.id,
+          model: this.model,
+          ready: false,
+          detail: `Ollama respondió HTTP ${response.status}.`
+        };
+      }
+
+      const body = (await response.json()) as {
+        models?: Array<{ name?: string; model?: string }>;
+      };
+      const names = (body.models ?? []).flatMap((item) => [
+        item.name ?? "",
+        item.model ?? ""
+      ]);
+      const modelPresent = names.some(
+        (name) =>
+          name === this.model ||
+          name.startsWith(`${this.model}:`) ||
+          this.model.startsWith(`${name}:`)
+      );
+
+      return {
+        provider: this.id,
+        model: this.model,
+        ready: modelPresent,
+        detail: modelPresent
+          ? "Ollama y el modelo visual Qwen están disponibles."
+          : `Ollama está disponible, pero no se encontró ${this.model}.`
+      };
+    } catch (error) {
+      return {
+        provider: this.id,
+        model: this.model,
+        ready: false,
+        detail:
+          error instanceof Error
+            ? error.message
+            : "No fue posible conectar con Ollama Vision."
+      };
+    }
   }
 
   async analyze(
