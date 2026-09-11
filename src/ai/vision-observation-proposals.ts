@@ -1,4 +1,5 @@
 import type { VisionObservation } from "./vision-provider.js";
+import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 export type TE1ProposalTarget =
   | "board.mainPoles"
@@ -98,6 +99,36 @@ export function buildTE1VisionProposals(
   }
 
   return { proposals, ignored };
+}
+
+export function applyTE1VisionProposal(
+  draft: TE1FormDraft,
+  proposal: TE1VisionProposal
+): TE1FormDraft {
+  const next: TE1FormDraft = structuredClone(draft);
+
+  switch (proposal.target) {
+    case "board.mainPoles":
+      next.board.mainPoles = proposal.proposedValue;
+      break;
+    case "board.mainCurrentA":
+      next.board.mainCurrentA = proposal.proposedValue;
+      break;
+    case "board.mainBreakingCapacityKA":
+      next.board.mainBreakingCapacityKA = proposal.proposedValue;
+      break;
+    case "board.differentialPoles":
+      next.board.differentialPoles = proposal.proposedValue;
+      break;
+    case "board.differentialCurrentA":
+      next.board.differentialCurrentA = proposal.proposedValue;
+      break;
+    case "board.differentialResidualMA":
+      next.board.differentialResidualMA = proposal.proposedValue;
+      break;
+  }
+
+  return next;
 }
 
 function normalizeElectricalNumber(value: string): string {
