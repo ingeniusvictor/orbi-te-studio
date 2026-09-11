@@ -212,8 +212,6 @@ export function VisualEvidenceInsights({
                         draft,
                         proposal
                       );
-                      onDraftChange(nextDraft);
-
                       if (typeof window !== "undefined") {
                         void appendProjectAuditEvent(
                           window.localStorage,
@@ -230,6 +228,8 @@ export function VisualEvidenceInsights({
                           }
                         );
                       }
+
+                      onDraftChange(nextDraft);
                     }}
                   >
                     Aplicar propuesta
