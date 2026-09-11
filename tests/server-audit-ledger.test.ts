@@ -123,6 +123,25 @@ describe("persistent server audit ledger", () => {
     ).toContain("no registra una aprobación");
   });
 
+  it("fails closed on malformed persisted ledger content", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "orbi-ledger-"));
+    const file = join(dir, "ledger.json");
+    await import("node:fs/promises").then(({ writeFile }) =>
+      writeFile(
+        file,
+        JSON.stringify({
+          schemaVersion: 1,
+          events: [{ id: "BROKEN" }]
+        }),
+        "utf8"
+      )
+    );
+
+    await expect(loadServerAuditLedger(file)).rejects.toThrow(
+      "eventos estructuralmente inválidos"
+    );
+  });
+
   it("loads only the selected project for package export", async () => {
     const dir = await mkdtemp(join(tmpdir(), "orbi-ledger-"));
     const file = join(dir, "ledger.json");
