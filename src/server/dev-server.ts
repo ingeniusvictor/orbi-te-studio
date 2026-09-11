@@ -3,6 +3,7 @@ import { generateTE1FromDraft } from "./generate-te1-service.js";
 import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify-evidence-service.js";
 import { createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
 import { auditReceiptCoverage } from "./evidence-generation-gate.js";
+import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -123,8 +124,31 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      const verificationManifest = buildServerEvidenceVerificationManifest(
+        projectId,
+        evidenceReceipts
+      );
+
       const result = await generateTE1FromDraft(draft, projectId);
-      json(response, result.ok ? 200 : result.status, result);
+      if (!result.ok) {
+        json(response, result.status, result);
+        return;
+      }
+
+      json(response, 200, {
+        ...result,
+        artifacts: [
+          ...result.artifacts,
+          {
+            filename: `${projectId}_TE1_server_verification_manifest.json`,
+            mimeType: "application/json",
+            encoding: "utf8",
+            content: serverEvidenceVerificationManifestToJson(
+              verificationManifest
+            )
+          }
+        ]
+      });
       return;
     } catch (error) {
       json(response, 422, {
