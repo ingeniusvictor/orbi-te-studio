@@ -33,9 +33,18 @@ export interface VisionAnalysisResult {
   warnings: string[];
 }
 
+export interface VisionProviderHealth {
+  provider: string;
+  model: string;
+  ready: boolean;
+  detail: string;
+}
+
 export interface VisionProvider {
   readonly id: string;
   readonly model: string;
+
+  health(): Promise<VisionProviderHealth>;
 
   analyze(
     evidence: VisionEvidenceInput,
