@@ -15,8 +15,12 @@ import {
   evidenceManifestToJson
 } from "./evidence-manifest.js";
 import { buildEvidenceVerificationUploads } from "./evidence-upload-payload.js";
-import { appendProjectAuditEvent } from "./audit-log.js";
-import { technicalDraftFingerprint } from "./review-integrity.js";
+import {
+  buildProjectAuditHistory,
+  projectAuditHistoryToJson,
+  replaceProjectAuditHistory,
+  validateProjectAuditChain
+} from "./audit-log.js";
 
 export function ExportPanel({
   draft,
@@ -79,6 +83,24 @@ export function ExportPanel({
       const evidenceManifestJson =
         evidenceManifestToJson(evidenceManifest);
 
+      if (typeof window === "undefined") {
+        throw new Error("El historial de auditoría requiere almacenamiento del navegador.");
+      }
+
+      const auditIssues = await validateProjectAuditChain(
+        window.localStorage,
+        projectId
+      );
+      if (auditIssues.length > 0) {
+        setIssues(auditIssues);
+        setState("error");
+        return;
+      }
+
+      const auditHistoryJson = projectAuditHistoryToJson(
+        buildProjectAuditHistory(window.localStorage, projectId)
+      );
+
       const result = await requestTE1Package(
         draft,
         projectId,
@@ -87,7 +109,8 @@ export function ExportPanel({
           evidenceId: receipt.evidenceId,
           sha256: receipt.sha256
         })),
-        evidenceManifestJson
+        evidenceManifestJson,
+        auditHistoryJson
       );
 
       if (!result.ok) {
@@ -99,18 +122,10 @@ export function ExportPanel({
       }
 
       setGenerated(result.artifacts);
-
-      if (typeof window !== "undefined") {
-        void appendProjectAuditEvent(window.localStorage, {
-          projectId,
-          action: "package-generated",
-          actor: draft.review.reviewerName.trim() || "ORBI TE Studio",
-          revisionFingerprint: technicalDraftFingerprint(draft),
-          details: result.artifacts
-            .map((artifact) => artifact.filename)
-            .join(", ")
-        });
-      }
+      replaceProjectAuditHistory(
+        window.localStorage,
+        result.auditHistory
+      );
 
       setState("success");
     } catch (error) {
