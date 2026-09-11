@@ -91,6 +91,14 @@ export function getEvidenceVerificationReceipt(
   return receipt ? { ...receipt } : undefined;
 }
 
+export function consumeEvidenceVerificationReceipts(
+  tokens: string[]
+): void {
+  for (const token of tokens) {
+    receipts.delete(token);
+  }
+}
+
 export function clearEvidenceVerificationReceipts(): void {
   receipts.clear();
 }
