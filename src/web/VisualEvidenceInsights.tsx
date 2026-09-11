@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getEvidenceBlob } from "./evidence-store.js";
+import { buildTE1VisionProposals } from "../ai/vision-observation-proposals.js";
 import type {
   EvidenceCategory,
   LocalEvidenceMetadata
@@ -43,6 +44,17 @@ export function VisualEvidenceInsights({
       .then(setHealth)
       .catch(() => setHealth(null));
   }, [imageSupported]);
+
+  const proposals = useMemo(
+    () =>
+      buildTE1VisionProposals(
+        (result?.observations ?? []).map((observation) => ({
+          ...observation,
+          evidenceId: observation.evidenceId
+        }))
+      ),
+    [result]
+  );
 
   if (!imageSupported) return null;
 
@@ -167,6 +179,24 @@ export function VisualEvidenceInsights({
                     {observation.status} · confianza {observation.confidence}
                   </small>
                   {observation.note && <p>{observation.note}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {proposals.proposals.length > 0 && (
+            <div className="vision-proposal-box">
+              <strong>Propuestas disponibles para revisión manual</strong>
+              {proposals.proposals.map((proposal) => (
+                <div
+                  className="vision-proposal"
+                  key={proposal.target}
+                >
+                  <span>{proposal.target}</span>
+                  <b>{proposal.proposedValue}</b>
+                  <small>
+                    {proposal.confidence} · no aplicado automáticamente
+                  </small>
                 </div>
               ))}
             </div>
