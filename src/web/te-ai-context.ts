@@ -83,7 +83,7 @@ export function buildTEAssistantContext(
   );
   for (const item of compliancePending.slice(0, 12)) {
     lines.push(
-      `RIC ${item.ruleId} [${item.status}]: ${item.message}`
+      `RIC ${item.code} [${item.status}]: ${item.message}`
     );
   }
 
