@@ -36,7 +36,8 @@ export async function buildTE1PhotographicReport(
 
   const doc = new PDFDocument({
     size: "A4",
-    margins: { top: 42, right: 42, bottom: 42, left: 42 },
+    bufferPages: true,
+    margins: { top: 54, right: 42, bottom: 54, left: 42 },
     info: {
       Title: `ORBI TE Studio - Informe Fotografico TE1 - ${projectId}`,
       Author: "ORBI TE Studio"
@@ -52,6 +53,8 @@ export async function buildTE1PhotographicReport(
   for (let index = 0; index < entries.length; index += 1) {
     renderEntryPage(doc, entries[index]!, index + 1, entries.length);
   }
+
+  applyDocumentChrome(doc, projectId, draft);
 
   doc.end();
 
@@ -106,6 +109,83 @@ function collectEntries(
         ? byCategory
         : a.filename.localeCompare(b.filename);
     });
+}
+
+function applyDocumentChrome(
+  doc: PDFKit.PDFDocument,
+  projectId: string,
+  draft: TE1FormDraft
+): void {
+  const range = doc.bufferedPageRange();
+  const totalPages = range.count;
+
+  for (let pageIndex = range.start; pageIndex < range.start + range.count; pageIndex += 1) {
+    doc.switchToPage(pageIndex);
+
+    const pageWidth = doc.page.width;
+    const left = doc.page.margins.left;
+    const right = pageWidth - doc.page.margins.right;
+
+    doc.save();
+
+    if (pageIndex > range.start) {
+      doc
+        .moveTo(left, 34)
+        .lineTo(right, 34)
+        .lineWidth(0.5)
+        .stroke("#cbd5e1");
+
+      doc.font("Helvetica-Bold").fontSize(8).fillColor("#334155");
+      doc.text("ORBI TE STUDIO · INFORME FOTOGRAFICO TE1", left, 20, {
+        width: right - left,
+        align: "left"
+      });
+
+      doc.font("Helvetica").fontSize(8).fillColor("#64748b");
+      doc.text(
+        draft.project.name || projectId,
+        left,
+        20,
+        {
+          width: right - left,
+          align: "right"
+        }
+      );
+    }
+
+    const footerY = doc.page.height - 32;
+    doc
+      .moveTo(left, footerY - 8)
+      .lineTo(right, footerY - 8)
+      .lineWidth(0.5)
+      .stroke("#cbd5e1");
+
+    doc.font("Helvetica").fontSize(7.5).fillColor("#64748b");
+    doc.text(
+      "Documento de apoyo ORBI TE Studio - No constituye declaracion ni aprobacion SEC",
+      left,
+      footerY,
+      {
+        width: right - left - 90,
+        align: "left",
+        lineBreak: false
+      }
+    );
+    doc.text(
+      `Pagina ${pageIndex - range.start + 1} de ${totalPages}`,
+      right - 90,
+      footerY,
+      {
+        width: 90,
+        align: "right",
+        lineBreak: false
+      }
+    );
+
+    doc.restore();
+  }
+
+  doc.switchToPage(range.start + range.count - 1);
 }
 
 function renderCover(
