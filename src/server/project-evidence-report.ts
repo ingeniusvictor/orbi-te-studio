@@ -33,6 +33,15 @@ export async function buildProjectEvidenceReport(
   doc.fontSize(10).fillColor("#444444");
   doc.text(`Proyecto: ${draft.project.name || projectId}`);
   doc.text(`ID: ${projectId}`);
+  doc.text(`Destino: ${draft.project.destination}`);
+  doc.text(
+    `Ubicación: ${[
+      draft.location.address,
+      draft.location.commune,
+      draft.location.region
+    ].filter(Boolean).join(", ") || "PENDIENTE"}`
+  );
+  doc.text(`Profesional revisor: ${draft.review.reviewerName || "PENDIENTE"}`);
   doc.text(`Generado: ${generatedAt.toISOString()}`);
   doc.text(
     "Este informe documenta evidencia verificada por ORBI TE Studio. No constituye aprobación ni declaración SEC."
@@ -66,6 +75,10 @@ export async function buildProjectEvidenceReport(
     doc.fontSize(10);
     doc.text(`Evidence ID: ${receipt.evidenceId}`);
     doc.text(`Rol(es): ${fileRoles.join(", ") || "Sin rol registrado"}`);
+    for (const role of fileRoles) {
+      const context = describeRoleContext(role, draft);
+      if (context) doc.text(`Contexto: ${context}`);
+    }
     doc.text(`Archivo: ${receipt.filename || "SIN NOMBRE"}`);
     doc.text(`Tipo: ${receipt.mimeType || "DESCONOCIDO"}`);
     doc.text(`Tamaño verificado: ${receipt.sizeBytes} bytes`);
@@ -125,6 +138,68 @@ export async function buildProjectEvidenceReport(
     mimeType: "application/pdf",
     bytes: new Uint8Array(Buffer.concat(chunks))
   };
+}
+
+function describeRoleContext(
+  role: string,
+  draft: TE1FormDraft
+): string {
+  if (role === "board.front") {
+    return [
+      draft.board.name || "tablero sin nombre",
+      draft.board.mainCurrentA
+        ? `protección general ${draft.board.mainCurrentA} A`
+        : "protección general pendiente",
+      draft.board.differentialResidualMA
+        ? `diferencial ${draft.board.differentialResidualMA} mA`
+        : "diferencial pendiente"
+    ].join(" · ");
+  }
+
+  if (role === "board.legend") {
+    return `Leyenda asociada a ${draft.board.name || "tablero"}.`;
+  }
+
+  if (role === "location.sketch") {
+    return [
+      draft.location.address,
+      draft.location.commune,
+      draft.location.region,
+      draft.location.wgs84 || draft.location.utm
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  if (role === "plan.source") {
+    return [
+      draft.plan.sourceType || "tipo pendiente",
+      draft.plan.scale ? `escala ${draft.plan.scale}` : "",
+      draft.plan.hasDimensions ? "dimensiones verificadas" : "dimensiones pendientes"
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  if (role.startsWith("measurement.")) {
+    const kind = role.slice("measurement.".length);
+    const measurement = draft.measurements.find(
+      (item) => item.kind === kind
+    );
+    if (!measurement) return "";
+
+    return [
+      measurement.value && measurement.unit
+        ? `${measurement.value} ${measurement.unit}`
+        : "valor pendiente",
+      measurement.verified ? "verificada" : "pendiente",
+      measurement.notes
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  return "";
 }
 
 function safeName(value: string): string {
