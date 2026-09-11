@@ -23,6 +23,7 @@ TE1_package.zip
 │   └── *_TE1_evidence_manifest.json
 └── 04_Integridad/
     ├── *_TE1_server_verification_manifest.json
+    ├── *_TE1_audit_history.json
     └── *_TE1_package_index.json
 ```
 
