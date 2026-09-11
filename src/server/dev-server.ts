@@ -21,6 +21,7 @@ import { TEAssistantService } from "../ai/te-assistant.js";
 import { validateTEAssistantRequest } from "./ai-runtime-validation.js";
 import { createVisionProviderFromEnv } from "../ai/vision-provider-registry.js";
 import { validateVisionAnalyzeRequest } from "./vision-runtime-validation.js";
+import { runLocalAIExclusive } from "./local-ai-resource-gate.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const HOST = process.env.ORBI_API_HOST ?? "127.0.0.1";
@@ -74,7 +75,9 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      const result = await TE_ASSISTANT.chat(validation.value);
+      const result = await runLocalAIExclusive(() =>
+        TE_ASSISTANT.chat(validation.value!)
+      );
       json(response, 200, {
         ok: true,
         ...result
@@ -214,14 +217,16 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      const result = await VISION_PROVIDER.analyze(
-        {
-          evidenceId: input.evidenceId,
-          kind: input.kind,
-          mimeType: receipt.mimeType,
-          bytes
-        },
-        input.instruction
+      const result = await runLocalAIExclusive(() =>
+        VISION_PROVIDER.analyze(
+          {
+            evidenceId: input.evidenceId,
+            kind: input.kind,
+            mimeType: receipt.mimeType,
+            bytes
+          },
+          input.instruction
+        )
       );
 
       json(response, 200, {
