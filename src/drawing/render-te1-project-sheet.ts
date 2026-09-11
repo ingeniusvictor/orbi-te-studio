@@ -4,7 +4,7 @@ import { renderConnectionDetailPanel } from "./render-connection-detail-svg.js";
 import { renderLoadSchedulePanel } from "./render-load-schedule-svg.js";
 import { renderPanelFrame } from "./panel-frame.js";
 import { renderRic18Footer } from "./render-ric18-footer.js";
-import { renderSymbolLegendPanel } from "./symbol-legend.js";
+import { renderSymbolLegendPanel, symbolLegendForProject } from "./symbol-legend.js";
 import { buildUnilinearModel } from "./unilinear.js";
 import { renderUnilinearPanel } from "./render-unilinear-svg.js";
 import { getRic18SheetGeometry } from "./ric18-layout.js";
@@ -128,7 +128,7 @@ export function renderTE1ProjectRic18A2Svg(
       rightW,
       bottomH,
       "CUADRO DE SIMBOLOGÍA",
-      renderSymbolLegendPanel(undefined, { showTitle: false }),
+      renderSymbolLegendPanel(symbolLegendForProject(project), { showTitle: false }),
       { scale: 0.92, offsetX: 7, offsetY: 11 }
     ),
     text(
