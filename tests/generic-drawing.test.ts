@@ -15,6 +15,22 @@ describe("generic TE1 A2 renderer", () => {
     expect(svg).not.toContain("CALLE SUR");
   });
 
+  it("renders an explicit street only after verified croquis geometry exists", () => {
+    const draft = createEmptyTE1FormDraft();
+    draft.location.address = "Calle Principal 123";
+    draft.location.locationSketchEvidenceId = "EV-SKETCH";
+    draft.location.locationSketchVerified = true;
+    draft.location.northStreet = "Avenida Norte";
+
+    const svg = renderDraftA2Svg(draft);
+
+    expect(svg).toContain("Avenida Norte");
+    expect(svg).toContain("Calle Principal 123");
+    expect(svg).not.toContain(
+      "Croquis vial específico aún no incorporado."
+    );
+  });
+
   it("renders Casa Goyo from the editable draft data", () => {
     const svg = renderDraftA2Svg(
       createCasaGoyoDemoDraft(),
