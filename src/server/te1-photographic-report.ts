@@ -23,7 +23,7 @@ interface PhotoEntry {
   roles: string[];
   categoryLabel: string;
   caption: string;
-  bytes?: Buffer;
+  bytes: Buffer | undefined;
 }
 
 export async function buildTE1PhotographicReport(
