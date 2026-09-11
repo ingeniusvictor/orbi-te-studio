@@ -69,9 +69,12 @@ export function validateProjectAuditHistory(
   const currentRevisionEvents = history.events.filter(
     (event) => event.revisionFingerprint === currentRevision
   );
-  const latestApprovalIndex = currentRevisionEvents.findLastIndex(
-    (event) => event.action === "approved"
-  );
+  let latestApprovalIndex = -1;
+  for (let index = 0; index < currentRevisionEvents.length; index += 1) {
+    if (currentRevisionEvents[index]?.action === "approved") {
+      latestApprovalIndex = index;
+    }
+  }
 
   if (latestApprovalIndex < 0) {
     issues.push(
