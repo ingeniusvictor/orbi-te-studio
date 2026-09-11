@@ -284,7 +284,11 @@ function validateDraft(
     "wgs84",
     "utm",
     "locationSketchEvidenceId",
-    "locationSketchEvidenceLabel"
+    "locationSketchEvidenceLabel",
+    "northStreet",
+    "southStreet",
+    "eastStreet",
+    "westStreet"
   ].forEach((key) =>
     stringField(location, key, issues, {
       prefix: "draft.location",
