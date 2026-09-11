@@ -8,6 +8,8 @@ import type {
 
 export const SERVER_LEDGER_SCHEMA = 1 as const;
 
+let ledgerMutationQueue: Promise<void> = Promise.resolve();
+
 export type ServerLedgerAction =
   | "client-approved"
   | "client-approval-invalidated"
@@ -221,6 +223,20 @@ async function saveServerAuditLedger(
   const tempPath = `${filePath}.tmp`;
   await writeFile(tempPath, JSON.stringify(ledger, null, 2), "utf8");
   await rename(tempPath, filePath);
+}
+
+async function mutateLedger<T>(
+  task: () => Promise<T>
+): Promise<T> {
+  let value!: T;
+  const run = async () => {
+    value = await task();
+  };
+
+  const previous = ledgerMutationQueue;
+  ledgerMutationQueue = previous.then(run, run);
+  await ledgerMutationQueue;
+  return value;
 }
 
 function appendLedgerEvent(
