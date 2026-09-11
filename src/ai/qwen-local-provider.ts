@@ -5,6 +5,7 @@ import type {
   AIProviderHealth
 } from "./provider.js";
 import { validateChatRequest } from "./provider.js";
+import { normalizeLocalAIBaseUrl } from "./local-endpoint.js";
 
 export interface QwenLocalProviderOptions {
   baseUrl?: string;
@@ -34,7 +35,7 @@ export class QwenLocalProvider implements AIProvider {
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: QwenLocalProviderOptions = {}) {
-    this.baseUrl = normalizeBaseUrl(
+    this.baseUrl = normalizeLocalAIBaseUrl(
       options.baseUrl ?? "http://127.0.0.1:11434"
     );
     this.model = options.model ?? "qwen3:8b";
@@ -164,8 +165,4 @@ export class QwenLocalProvider implements AIProvider {
       clearTimeout(timeout);
     }
   }
-}
-
-function normalizeBaseUrl(value: string): string {
-  return value.replace(/\/+$/, "");
 }
