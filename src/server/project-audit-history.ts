@@ -69,12 +69,27 @@ export function validateProjectAuditHistory(
   const currentRevisionEvents = history.events.filter(
     (event) => event.revisionFingerprint === currentRevision
   );
-  const latestCurrent = currentRevisionEvents.at(-1);
+  const latestApprovalIndex = currentRevisionEvents.findLastIndex(
+    (event) => event.action === "approved"
+  );
 
-  if (!latestCurrent || latestCurrent.action !== "approved") {
+  if (latestApprovalIndex < 0) {
     issues.push(
       "La revisión técnica actual no tiene una aprobación profesional vigente en el historial."
     );
+  } else {
+    const afterApproval = currentRevisionEvents.slice(
+      latestApprovalIndex + 1
+    );
+    if (
+      afterApproval.some(
+        (event) => event.action === "approval-invalidated"
+      )
+    ) {
+      issues.push(
+        "La aprobación profesional de la revisión técnica actual fue invalidada."
+      );
+    }
   }
 
   if (!draft.review.approved || !draft.review.reviewerName.trim()) {
