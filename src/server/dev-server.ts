@@ -1,12 +1,12 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { generateTE1FromDraft } from "./generate-te1-service.js";
 import { verifyEvidenceUploads } from "./verify-evidence-service.js";
-import { consumeEvidenceVerificationReceipts, createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
+import { consumeEvidenceVerificationReceipts, createEvidenceVerificationReceipt, getEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
 import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
 import { buildProjectEvidenceReport } from "./project-evidence-report.js";
 import { buildTE1PhotographicReport } from "./te1-photographic-report.js";
-import { consumeVerifiedEvidenceBuffers, pruneExpiredVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
+import { consumeVerifiedEvidenceBuffers, getVerifiedEvidenceBuffer, pruneExpiredVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
 import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput } from "./te1-package-index.js";
 import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gate.js";
 import { buildTE1PackageZip } from "./te1-package-zip.js";
@@ -19,6 +19,8 @@ import { validateEvidenceVerifyRequest, validateGenerateTE1Request } from "./run
 import { createAIProviderFromEnv } from "../ai/provider-registry.js";
 import { TEAssistantService } from "../ai/te-assistant.js";
 import { validateTEAssistantRequest } from "./ai-runtime-validation.js";
+import { createVisionProviderFromEnv } from "../ai/vision-provider-registry.js";
+import { validateVisionAnalyzeRequest } from "./vision-runtime-validation.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const HOST = process.env.ORBI_API_HOST ?? "127.0.0.1";
@@ -29,6 +31,7 @@ const SERVER_AUDIT_LEDGER_PATH =
 
 const AI_PROVIDER = createAIProviderFromEnv();
 const TE_ASSISTANT = new TEAssistantService(AI_PROVIDER);
+const VISION_PROVIDER = createVisionProviderFromEnv();
 
 const server = createServer(async (request, response) => {
   setCors(response);
@@ -82,6 +85,155 @@ const server = createServer(async (request, response) => {
         ok: false,
         code: "LOCAL_AI_UNAVAILABLE",
         message: "El proveedor IA local no pudo responder.",
+        issues: [
+          error instanceof Error
+            ? error.message
+            : "Error desconocido"
+        ]
+      });
+      return;
+    }
+  }
+
+  if (
+    request.method === "GET" &&
+    request.url === "/api/ai/vision/health"
+  ) {
+    if (!VISION_PROVIDER) {
+      json(response, 503, {
+        ok: false,
+        provider: "disabled",
+        model: "",
+        ready: false,
+        detail: "Proveedor visual local deshabilitado."
+      });
+      return;
+    }
+
+    const health = await VISION_PROVIDER.health();
+    json(response, health.ready ? 200 : 503, {
+      ok: health.ready,
+      ...health
+    });
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    request.url === "/api/ai/vision/analyze"
+  ) {
+    if (!VISION_PROVIDER) {
+      json(response, 503, {
+        ok: false,
+        code: "VISION_PROVIDER_DISABLED",
+        message: "El proveedor visual local está deshabilitado.",
+        issues: []
+      });
+      return;
+    }
+
+    try {
+      pruneExpiredVerifiedEvidenceBuffers();
+      const payload = await readJsonBody(request);
+      const validation = validateVisionAnalyzeRequest(payload);
+      if (!validation.ok || !validation.value) {
+        json(response, 422, {
+          ok: false,
+          code: "INVALID_VISION_REQUEST",
+          message: "La solicitud de análisis visual no es válida.",
+          issues: validation.issues
+        });
+        return;
+      }
+
+      const input = validation.value;
+      const receipt = getEvidenceVerificationReceipt(
+        input.receiptToken
+      );
+
+      if (!receipt) {
+        json(response, 422, {
+          ok: false,
+          code: "VISION_RECEIPT_INVALID",
+          message: "El comprobante de evidencia no está disponible.",
+          issues: [
+            "La evidencia debe verificarse antes del análisis visual."
+          ]
+        });
+        return;
+      }
+
+      const receiptIssues =
+        validateEvidenceVerificationReceipts(
+          input.projectId,
+          [
+            {
+              token: input.receiptToken,
+              evidenceId: input.evidenceId,
+              sha256: receipt.sha256
+            }
+          ]
+        );
+      if (receiptIssues.length > 0) {
+        json(response, 422, {
+          ok: false,
+          code: "VISION_RECEIPT_INVALID",
+          message:
+            "El comprobante no es válido para este análisis visual.",
+          issues: receiptIssues
+        });
+        return;
+      }
+
+      if (
+        receipt.mimeType !== "image/jpeg" &&
+        receipt.mimeType !== "image/png" &&
+        receipt.mimeType !== "image/webp"
+      ) {
+        json(response, 422, {
+          ok: false,
+          code: "VISION_MIME_UNSUPPORTED",
+          message:
+            "El análisis visual local solo admite JPEG, PNG o WEBP.",
+          issues: [receipt.mimeType]
+        });
+        return;
+      }
+
+      const bytes = getVerifiedEvidenceBuffer(
+        input.receiptToken
+      );
+      if (!bytes) {
+        json(response, 422, {
+          ok: false,
+          code: "VISION_BUFFER_MISSING",
+          message:
+            "Los bytes verificados ya no están disponibles.",
+          issues: []
+        });
+        return;
+      }
+
+      const result = await VISION_PROVIDER.analyze(
+        {
+          evidenceId: input.evidenceId,
+          kind: input.kind,
+          mimeType: receipt.mimeType,
+          bytes
+        },
+        input.instruction
+      );
+
+      json(response, 200, {
+        ok: true,
+        ...result
+      });
+      return;
+    } catch (error) {
+      json(response, 503, {
+        ok: false,
+        code: "LOCAL_VISION_UNAVAILABLE",
+        message: "La IA visual local no pudo responder.",
         issues: [
           error instanceof Error
             ? error.message
