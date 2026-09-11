@@ -1,5 +1,6 @@
 import { buildTE1GeneratedArtifacts } from "../export/te1-artifacts.js";
 import { draftToTE1Project } from "../web/draft-to-project.js";
+import { buildLocationSketchModel } from "../web/draft-drawing.js";
 import { buildWebExportSummary } from "../web/export-summary.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
@@ -72,9 +73,7 @@ export async function generateTE1FromDraft(
       ? { authorizedInstaller: draft.review.reviewerName.trim() }
       : {}),
     ...(draft.plan.scale.trim() ? { scale: draft.plan.scale.trim() } : {}),
-    locationSketchVerified:
-      Boolean(draft.location.locationSketchEvidenceId.trim()) &&
-      draft.location.locationSketchVerified
+    locationSketchModel: buildLocationSketchModel(draft)
   });
 
   return {
