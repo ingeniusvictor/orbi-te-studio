@@ -45,23 +45,39 @@ export function ReviewForm({
 
   const setApproved = (approved: boolean) => {
     const now = new Date();
+    const withdrawingApproval = draft.review.approved && !approved;
     const result = applyReviewMetadataChange(draft, {
       approved,
       approvedAt: approved ? now.toISOString() : "",
-      invalidated: false,
-      invalidatedAt: "",
-      invalidationReason: ""
+      invalidated: withdrawingApproval ? true : false,
+      invalidatedAt: withdrawingApproval ? now.toISOString() : "",
+      invalidationReason: withdrawingApproval
+        ? "La aprobación profesional fue retirada manualmente."
+        : ""
     });
 
     onChange(result.draft);
 
-    if (approved && typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+
+    if (approved) {
       void appendProjectAuditEvent(window.localStorage, {
         projectId,
         action: "approved",
         actor: result.draft.review.reviewerName.trim(),
         revisionFingerprint: technicalDraftFingerprint(result.draft),
         details: result.draft.review.notes,
+        occurredAt: now
+      });
+    } else if (withdrawingApproval) {
+      void appendProjectAuditEvent(window.localStorage, {
+        projectId,
+        action: "approval-invalidated",
+        actor:
+          draft.review.reviewerName.trim() ||
+          "ORBI TE Studio",
+        revisionFingerprint: technicalDraftFingerprint(result.draft),
+        details: result.draft.review.invalidationReason,
         occurredAt: now
       });
     }
