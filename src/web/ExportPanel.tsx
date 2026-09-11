@@ -186,23 +186,44 @@ export function ExportPanel({
         <div className="generation-result success">
           <strong>Paquete generado por el servicio local.</strong>
           <span>
-            Descarga cada artefacto para revisarlo antes de cualquier uso
-            documental. El manifest de evidencia registra las huellas SHA-256
-            de los archivos vinculados.
+            El ZIP reúne el expediente técnico en carpetas. También puedes
+            descargar cada artefacto individual para revisión.
           </span>
 
+          {generated.find((artifact) => artifact.mimeType === "application/zip") && (
+            <button
+              type="button"
+              className="zip-download"
+              onClick={() => {
+                const zip = generated.find(
+                  (artifact) => artifact.mimeType === "application/zip"
+                );
+                if (zip) downloadArtifact(zip);
+              }}
+            >
+              <span>
+                {generated.find(
+                  (artifact) => artifact.mimeType === "application/zip"
+                )?.filename}
+              </span>
+              <b>Descargar paquete ZIP</b>
+            </button>
+          )}
+
           <div className="generated-files">
-            {generated.map((artifact) => (
-              <button
-                type="button"
-                className="generated-file"
-                key={artifact.filename}
-                onClick={() => downloadArtifact(artifact)}
-              >
-                <span>{artifact.filename}</span>
-                <b>Descargar</b>
-              </button>
-            ))}
+            {generated
+              .filter((artifact) => artifact.mimeType !== "application/zip")
+              .map((artifact) => (
+                <button
+                  type="button"
+                  className="generated-file"
+                  key={artifact.filename}
+                  onClick={() => downloadArtifact(artifact)}
+                >
+                  <span>{artifact.filename}</span>
+                  <b>Descargar</b>
+                </button>
+              ))}
           </div>
         </div>
       )}
