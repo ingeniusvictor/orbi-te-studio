@@ -28,11 +28,12 @@ Recommended starting configuration for a 16 GB RAM workstation:
 ```
 ORBI_AI_PROVIDER=qwen-local
 ORBI_QWEN_BASE_URL=http://127.0.0.1:11434
-ORBI_QWEN_MODEL=qwen3:8b
+ORBI_QWEN_MODEL=qwen3:1.7b
 ```
 
 The repository defaults to `mock` so the application and test suite do not
-require Ollama.
+require Ollama. `qwen3:1.7b` is the initial ORBI workstation profile; larger
+Qwen models remain selectable through `ORBI_QWEN_MODEL` after local validation.
 
 ## Vision model
 
