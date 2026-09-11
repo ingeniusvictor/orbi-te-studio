@@ -3,6 +3,7 @@ import { complianceRules } from "../compliance/registry.js";
 import { validateRic18Presentation } from "../compliance/ric18-presentation.js";
 import { draftToTE1Project } from "./draft-to-project.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
+import { hasRenderableLocationSketch } from "./location-sketch-readiness.js";
 
 export type ComplianceDisplayStatus =
   | "pass"
@@ -59,9 +60,7 @@ export function buildComplianceSummary(
     hasGeoreference: Boolean(
       draft.location.wgs84.trim() || draft.location.utm.trim()
     ),
-    hasLocationSketch:
-      Boolean(draft.location.locationSketchEvidenceId.trim()) &&
-      draft.location.locationSketchVerified,
+    hasLocationSketch: hasRenderableLocationSketch(draft),
     destination: draft.project.destination,
     sheetNumber: 1,
     sheetTotal: 1,
