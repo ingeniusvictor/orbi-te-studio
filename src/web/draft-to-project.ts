@@ -78,6 +78,7 @@ export function draftToTE1Project(
 ): TE1Project {
   const voltageV = Number(draft.project.voltageV);
   const safeVoltage = Number.isFinite(voltageV) && voltageV > 0 ? voltageV : 220;
+  const surfaceM2 = numberOrUndefined(draft.project.surfaceM2);
 
   const circuits = draft.circuits
     .map((circuit) => circuitFromDraft(circuit, safeVoltage))
@@ -102,6 +103,9 @@ export function draftToTE1Project(
     destination: draft.project.destination,
     system: draft.project.system,
     voltageV: safeVoltage,
+    ...(surfaceM2 !== undefined && surfaceM2 > 0
+      ? { surfaceM2 }
+      : {}),
     boardName: draft.board.name.trim() || "TABLERO PENDIENTE",
     ...(mainPoles !== undefined && mainCurrentA !== undefined
       ? {
