@@ -41,12 +41,20 @@ export async function loadServerAuditLedger(
       parsed.schemaVersion !== SERVER_LEDGER_SCHEMA ||
       !Array.isArray(parsed.events)
     ) {
-      return emptyLedger();
+      throw new Error(
+        "El ledger server-side tiene una estructura o versión no soportada."
+      );
+    }
+
+    if (!parsed.events.every(isServerLedgerEvent)) {
+      throw new Error(
+        "El ledger server-side contiene eventos estructuralmente inválidos."
+      );
     }
 
     return {
       schemaVersion: SERVER_LEDGER_SCHEMA,
-      events: parsed.events.filter(isServerLedgerEvent)
+      events: parsed.events
     };
   } catch (error) {
     if (
