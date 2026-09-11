@@ -1,3 +1,4 @@
+import type { TE1Project } from "../domain/types.js";
 import { circle, line, rect, text } from "./svg-primitives.js";
 
 export type SymbolKind =
@@ -20,6 +21,27 @@ export const defaultTE1SymbolLegend: SymbolLegendItem[] = [
   { kind: "earth", code: "TP/TS", description: "Puesta a tierra" },
   { kind: "junction", code: "●", description: "Punto de conexión" }
 ];
+
+export function symbolLegendForProject(
+  project: TE1Project
+): SymbolLegendItem[] {
+  const items: SymbolLegendItem[] = [];
+
+  if (project.mainProtection) {
+    items.push(defaultTE1SymbolLegend[0]!);
+  }
+  if (project.differentialProtection) {
+    items.push(defaultTE1SymbolLegend[1]!);
+  }
+  if (project.circuits.length > 0) {
+    items.push(defaultTE1SymbolLegend[2]!);
+  }
+
+  // Earth symbols are intentionally omitted until grounding topology is
+  // represented explicitly in the project model.
+  items.push(defaultTE1SymbolLegend[4]!);
+  return items;
+}
 
 function renderSymbol(kind: SymbolKind, x: number, y: number): string {
   switch (kind) {
