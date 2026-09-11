@@ -10,6 +10,7 @@ which avoids changing the bytes that were already hashed in the package index.
 
 ```
 TE1_package.zip
+├── LEEME_ORBI_TE1.txt
 ├── 00_Proyecto/
 │   └── *_TE1_manifest.json
 ├── 01_Planos/
@@ -24,6 +25,13 @@ TE1_package.zip
     ├── *_TE1_server_verification_manifest.json
     └── *_TE1_package_index.json
 ```
+
+The root README explains the folder structure, ORBI review status, package
+limitations, and SHA-256 verification commands for Windows PowerShell and
+Linux/macOS.
+
+The README itself is included in the package index, so its bytes are covered by
+the package integrity inventory.
 
 The ZIP itself is returned as the primary downloadable artifact while individual
 files remain available for inspection.
