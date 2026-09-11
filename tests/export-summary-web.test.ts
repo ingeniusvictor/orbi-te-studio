@@ -10,6 +10,22 @@ describe("web TE1 export summary", () => {
     expect(summary.documents.every((doc) => doc.status === "pending")).toBe(true);
   });
 
+  it("surfaces deterministic engineering blockers in the export document list", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.circuits[0]!.breakerA = "1";
+    draft.circuits[0]!.installedPowerW = "10000";
+
+    const summary = buildWebExportSummary(draft);
+    const validation = summary.documents.find(
+      (document) => document.id === "engineering-validation"
+    );
+
+    expect(validation?.status).toBe("pending");
+    expect(validation?.reason).toContain(
+      "corriente de diseño supera"
+    );
+  });
+
   it("always emits a project manifest preview", () => {
     const summary = buildWebExportSummary(createCasaGoyoDemoDraft());
     const manifest = JSON.parse(summary.manifestJson) as { declarationType: string };
