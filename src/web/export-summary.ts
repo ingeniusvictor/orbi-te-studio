@@ -87,6 +87,30 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
       ...(!approvedForPreparation
         ? { reason: "El proyecto aún no está aprobado." }
         : {})
+    },
+    {
+      id: "evidence-manifest",
+      label: "Manifest SHA-256 de evidencia",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Requiere aprobación y vínculos de evidencia completos." }
+        : {})
+    },
+    {
+      id: "evidence-report",
+      label: "Informe legible de evidencia",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Se genera tras verificación server-side de evidencia." }
+        : {})
+    },
+    {
+      id: "server-verification-manifest",
+      label: "Manifest de verificación del servidor",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Se genera después de verificar SHA-256 en servidor." }
+        : {})
     }
   ];
 
