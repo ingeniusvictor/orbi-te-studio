@@ -1,5 +1,3 @@
-import type { ProjectAuditHistory } from "../web/audit-log.js";
-import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 import type { EvidenceVerificationUpload } from "./verify-evidence-service.js";
 
@@ -317,7 +315,8 @@ function validateDraft(
   ].forEach((key) =>
     stringField(board, key, issues, {
       prefix: "draft.board",
-      max: 500
+      max: 500,
+      required: false
     })
   );
 
@@ -407,7 +406,11 @@ function validateCircuit(
     "conductorPeMm2",
     "installationMethod"
   ].forEach((key) =>
-    stringField(value, key, issues, { prefix, max: 1000 })
+    stringField(value, key, issues, {
+      prefix,
+      max: 1000,
+      required: false
+    })
   );
 
   const material = stringField(
@@ -517,7 +520,6 @@ function validateEvidenceManifestJson(
     }
   });
 
-  parsed as unknown as EvidenceManifest;
 }
 
 function validateAuditHistoryJson(
@@ -576,7 +578,6 @@ function validateAuditHistoryJson(
     );
   });
 
-  parsed as unknown as ProjectAuditHistory;
 }
 
 function stringField(
