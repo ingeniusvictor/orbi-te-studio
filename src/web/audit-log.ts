@@ -6,6 +6,7 @@ export const AUDIT_SCHEMA_VERSION = 1 as const;
 export type AuditAction =
   | "approved"
   | "approval-invalidated"
+  | "ai-proposal-accepted"
   | "package-generated";
 
 export interface ProjectAuditEvent {
@@ -40,6 +41,8 @@ interface AuditEnvelope {
   schemaVersion: typeof AUDIT_SCHEMA_VERSION;
   events: ProjectAuditEvent[];
 }
+
+let auditAppendQueue: Promise<void> = Promise.resolve();
 
 function emptyEnvelope(): AuditEnvelope {
   return {
@@ -82,46 +85,57 @@ export async function appendProjectAuditEvent(
   storage: StorageLike,
   input: AppendAuditInput
 ): Promise<ProjectAuditEvent> {
-  const envelope = decodeAuditEnvelope(storage.getItem(AUDIT_STORE_KEY));
-  const projectEvents = envelope.events.filter(
-    (event) => event.projectId === input.projectId
-  );
-  const previousHash = projectEvents.at(-1)?.hash ?? "";
+  let created!: ProjectAuditEvent;
 
-  const eventWithoutHash = {
-    schemaVersion: AUDIT_SCHEMA_VERSION,
-    id: createAuditId(),
-    projectId: input.projectId,
-    action: input.action,
-    actor: input.actor.trim() || "ORBI TE Studio",
-    occurredAt: (input.occurredAt ?? new Date()).toISOString(),
-    revisionFingerprint: await sha256Text(input.revisionFingerprint),
-    details: input.details?.trim() ?? "",
-    previousHash
-  };
-
-  const event: ProjectAuditEvent = {
-    ...eventWithoutHash,
-    hash: await sha256Text(JSON.stringify(eventWithoutHash))
-  };
-
-  storage.setItem(
-    AUDIT_STORE_KEY,
-    JSON.stringify({
-      schemaVersion: AUDIT_SCHEMA_VERSION,
-      events: [...envelope.events, event]
-    } satisfies AuditEnvelope)
-  );
-
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent("orbi:audit-changed", {
-        detail: { projectId: input.projectId }
-      })
+  const run = async () => {
+    const envelope = decodeAuditEnvelope(
+      storage.getItem(AUDIT_STORE_KEY)
     );
-  }
+    const projectEvents = envelope.events.filter(
+      (event) => event.projectId === input.projectId
+    );
+    const previousHash = projectEvents.at(-1)?.hash ?? "";
 
-  return event;
+    const eventWithoutHash = {
+      schemaVersion: AUDIT_SCHEMA_VERSION,
+      id: createAuditId(),
+      projectId: input.projectId,
+      action: input.action,
+      actor: input.actor.trim() || "ORBI TE Studio",
+      occurredAt: (input.occurredAt ?? new Date()).toISOString(),
+      revisionFingerprint: await sha256Text(
+        input.revisionFingerprint
+      ),
+      details: input.details?.trim() ?? "",
+      previousHash
+    };
+
+    created = {
+      ...eventWithoutHash,
+      hash: await sha256Text(JSON.stringify(eventWithoutHash))
+    };
+
+    storage.setItem(
+      AUDIT_STORE_KEY,
+      JSON.stringify({
+        schemaVersion: AUDIT_SCHEMA_VERSION,
+        events: [...envelope.events, created]
+      } satisfies AuditEnvelope)
+    );
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("orbi:audit-changed", {
+          detail: { projectId: input.projectId }
+        })
+      );
+    }
+  };
+
+  const previous = auditAppendQueue;
+  auditAppendQueue = previous.then(run, run);
+  await auditAppendQueue;
+  return created;
 }
 
 export function buildProjectAuditHistory(
