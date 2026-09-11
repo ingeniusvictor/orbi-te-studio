@@ -2,8 +2,10 @@ import { useState } from "react";
 import { buildWebExportSummary } from "./export-summary.js";
 import {
   downloadArtifact,
+  requestEvidenceVerification,
   requestTE1Package,
-  type ApiGeneratedArtifact
+  type ApiGeneratedArtifact,
+  type EvidenceVerificationReceipt
 } from "./generation-api.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 import { useEvidenceAudit } from "./use-evidence-audit.js";
@@ -50,10 +52,36 @@ export function ExportPanel({
       const evidenceUploads =
         await buildEvidenceVerificationUploads(evidenceManifest);
 
+      const receipts: EvidenceVerificationReceipt[] = [];
+      for (const upload of evidenceUploads) {
+        const verification = await requestEvidenceVerification(
+          projectId,
+          [upload]
+        );
+        if (!verification.ok || verification.receipts.length !== 1) {
+          const verificationIssues = [
+            ...(verification.issues ?? []),
+            ...verification.items.flatMap((item) => item.issues)
+          ];
+          setIssues(
+            verificationIssues.length > 0
+              ? verificationIssues
+              : [`No se pudo verificar ${upload.filename} en el servidor.`]
+          );
+          setState("error");
+          return;
+        }
+        receipts.push(verification.receipts[0]!);
+      }
+
       const result = await requestTE1Package(
         draft,
         projectId,
-        evidenceUploads
+        receipts.map((receipt) => ({
+          token: receipt.token,
+          evidenceId: receipt.evidenceId,
+          sha256: receipt.sha256
+        }))
       );
 
       if (!result.ok) {
@@ -141,7 +169,7 @@ export function ExportPanel({
           onClick={generatePackage}
         >
           {state === "generating"
-            ? "Generando paquete..."
+            ? "Verificando evidencia y generando..."
             : "Generar paquete TE1"}
         </button>
       </div>
