@@ -1,7 +1,8 @@
 import { buildReviewGateSummary } from "./review-summary.js";
 import { useEvidenceAudit } from "./use-evidence-audit.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
-import { applyReviewMetadataChange } from "./review-integrity.js";
+import { applyReviewMetadataChange, technicalDraftFingerprint } from "./review-integrity.js";
+import { appendProjectAuditEvent } from "./audit-log.js";
 
 export function ReviewForm({
   draft,
@@ -25,13 +26,27 @@ export function ReviewForm({
   };
 
   const setApproved = (approved: boolean) => {
-    update({
+    const now = new Date();
+    const result = applyReviewMetadataChange(draft, {
       approved,
-      approvedAt: approved ? new Date().toISOString() : "",
+      approvedAt: approved ? now.toISOString() : "",
       invalidated: false,
       invalidatedAt: "",
       invalidationReason: ""
     });
+
+    onChange(result.draft);
+
+    if (approved && typeof window !== "undefined") {
+      void appendProjectAuditEvent(window.localStorage, {
+        projectId,
+        action: "approved",
+        actor: result.draft.review.reviewerName.trim(),
+        revisionFingerprint: technicalDraftFingerprint(result.draft),
+        details: result.draft.review.notes,
+        occurredAt: now
+      });
+    }
   };
 
   return (
