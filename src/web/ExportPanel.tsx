@@ -74,6 +74,9 @@ export function ExportPanel({
         receipts.push(verification.receipts[0]!);
       }
 
+      const evidenceManifestJson =
+        evidenceManifestToJson(evidenceManifest);
+
       const result = await requestTE1Package(
         draft,
         projectId,
@@ -81,7 +84,8 @@ export function ExportPanel({
           token: receipt.token,
           evidenceId: receipt.evidenceId,
           sha256: receipt.sha256
-        }))
+        })),
+        evidenceManifestJson
       );
 
       if (!result.ok) {
@@ -92,14 +96,7 @@ export function ExportPanel({
         return;
       }
 
-      const evidenceManifestArtifact: ApiGeneratedArtifact = {
-        filename: `${projectId}_TE1_evidence_manifest.json`,
-        mimeType: "application/json",
-        encoding: "utf8",
-        content: evidenceManifestToJson(evidenceManifest)
-      };
-
-      setGenerated([...result.artifacts, evidenceManifestArtifact]);
+      setGenerated(result.artifacts);
       setState("success");
     } catch (error) {
       setIssues([
