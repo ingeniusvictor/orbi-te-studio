@@ -42,7 +42,8 @@ export function packagePathForArtifact(filename: string): string {
 
   if (
     lower.endsWith("_te1_a2.pdf") ||
-    lower.endsWith("_te1_a2.svg")
+    lower.endsWith("_te1_a2.svg") ||
+    lower.endsWith("_te1_tablero_frontal.svg")
   ) {
     return `01_Planos/${filename}`;
   }
