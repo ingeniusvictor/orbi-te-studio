@@ -19,11 +19,26 @@ describe("professional review integrity", () => {
     const next = structuredClone(previous);
     next.board.mainCurrentA = "32";
 
-    const result = applyTechnicalDraftChange(previous, next);
+    const result = applyTechnicalDraftChange(
+      previous,
+      next,
+      new Date("2026-09-11T03:00:00.000Z")
+    );
 
     expect(result.invalidated).toBe(true);
     expect(result.draft.review.approved).toBe(false);
+    expect(result.draft.review.invalidated).toBe(true);
+    expect(result.draft.review.invalidatedAt).toBe(
+      "2026-09-11T03:05:00.000Z"
+    );
     expect(result.draft.review.approvedAt).toBe("");
+    expect(result.draft.review.invalidated).toBe(true);
+    expect(result.draft.review.invalidatedAt).toBe(
+      "2026-09-11T03:00:00.000Z"
+    );
+    expect(result.draft.review.invalidationReason).toContain(
+      "información técnica"
+    );
   });
 
   it("preserves approval when technical content is unchanged", () => {
@@ -38,9 +53,11 @@ describe("professional review integrity", () => {
 
   it("invalidates approval when reviewer identity changes", () => {
     const previous = approvedDraft();
-    const result = applyReviewMetadataChange(previous, {
-      reviewerName: "Otro Profesional"
-    });
+    const result = applyReviewMetadataChange(
+      previous,
+      { reviewerName: "Otro Profesional" },
+      new Date("2026-09-11T03:05:00.000Z")
+    );
 
     expect(result.invalidated).toBe(true);
     expect(result.draft.review.approved).toBe(false);
