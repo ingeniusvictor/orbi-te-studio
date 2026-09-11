@@ -121,6 +121,14 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
         : {})
     },
     {
+      id: "server-audit-ledger",
+      label: "Ledger de auditoría server-side",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Se valida y persiste en el servicio local antes de generar." }
+        : {})
+    },
+    {
       id: "package-index",
       label: "Índice SHA-256 del paquete",
       status: approvedForPreparation ? "ready-to-generate" : "pending",
