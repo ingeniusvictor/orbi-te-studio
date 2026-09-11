@@ -5,6 +5,7 @@ import {
 } from "../drawing/render-te1-project-sheet.js";
 import { buildProjectManifest } from "./project-manifest.js";
 import { svgToPdfArtifact } from "./pdf-export.js";
+import { renderProjectPanelFrontSvg } from "../drawing/render-project-panel-front-svg.js";
 
 export interface TextArtifact {
   filename: string;
@@ -16,6 +17,7 @@ export interface TE1GeneratedArtifacts {
   svg: TextArtifact;
   pdf: Awaited<ReturnType<typeof svgToPdfArtifact>>;
   manifest: TextArtifact;
+  panelFrontSvg?: TextArtifact;
 }
 
 export async function buildTE1GeneratedArtifacts(
@@ -25,6 +27,7 @@ export async function buildTE1GeneratedArtifacts(
   const base = safeFilename(project.name || project.id);
   const svg = renderTE1ProjectRic18A2Svg(project, options);
   const manifest = buildProjectManifest(project);
+  const panelFrontSvg = renderProjectPanelFrontSvg(project);
 
   return {
     svg: {
@@ -42,7 +45,16 @@ export async function buildTE1GeneratedArtifacts(
       filename: `${base}_TE1_manifest.json`,
       mimeType: "application/json",
       text: JSON.stringify(manifest, null, 2)
-    }
+    },
+    ...(panelFrontSvg
+      ? {
+          panelFrontSvg: {
+            filename: `${base}_TE1_tablero_frontal.svg`,
+            mimeType: "image/svg+xml" as const,
+            text: panelFrontSvg
+          }
+        }
+      : {})
   };
 }
 
