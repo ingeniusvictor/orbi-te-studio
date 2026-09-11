@@ -73,6 +73,13 @@ export function validateEvidenceVerificationReceipts(
   return issues;
 }
 
+export function getEvidenceVerificationReceipt(
+  token: string
+): EvidenceVerificationReceipt | undefined {
+  const receipt = receipts.get(token);
+  return receipt ? { ...receipt } : undefined;
+}
+
 export function clearEvidenceVerificationReceipts(): void {
   receipts.clear();
 }
