@@ -15,6 +15,8 @@ import {
   evidenceManifestToJson
 } from "./evidence-manifest.js";
 import { buildEvidenceVerificationUploads } from "./evidence-upload-payload.js";
+import { appendProjectAuditEvent } from "./audit-log.js";
+import { technicalDraftFingerprint } from "./review-integrity.js";
 
 export function ExportPanel({
   draft,
@@ -97,6 +99,19 @@ export function ExportPanel({
       }
 
       setGenerated(result.artifacts);
+
+      if (typeof window !== "undefined") {
+        void appendProjectAuditEvent(window.localStorage, {
+          projectId,
+          action: "package-generated",
+          actor: draft.review.reviewerName.trim() || "ORBI TE Studio",
+          revisionFingerprint: technicalDraftFingerprint(draft),
+          details: result.artifacts
+            .map((artifact) => artifact.filename)
+            .join(", ")
+        });
+      }
+
       setState("success");
     } catch (error) {
       setIssues([
