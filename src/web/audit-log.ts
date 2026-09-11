@@ -21,8 +21,9 @@ export interface ProjectAuditEvent {
   hash: string;
 }
 
-interface AuditEnvelope {
+export interface ProjectAuditHistory {
   schemaVersion: typeof AUDIT_SCHEMA_VERSION;
+  projectId: string;
   events: ProjectAuditEvent[];
 }
 
@@ -33,6 +34,11 @@ export interface AppendAuditInput {
   revisionFingerprint: string;
   details?: string;
   occurredAt?: Date;
+}
+
+interface AuditEnvelope {
+  schemaVersion: typeof AUDIT_SCHEMA_VERSION;
+  events: ProjectAuditEvent[];
 }
 
 function emptyEnvelope(): AuditEnvelope {
@@ -116,6 +122,23 @@ export async function appendProjectAuditEvent(
   }
 
   return event;
+}
+
+export function buildProjectAuditHistory(
+  storage: StorageLike,
+  projectId: string
+): ProjectAuditHistory {
+  return {
+    schemaVersion: AUDIT_SCHEMA_VERSION,
+    projectId,
+    events: listProjectAuditEvents(storage, projectId)
+  };
+}
+
+export function projectAuditHistoryToJson(
+  history: ProjectAuditHistory
+): string {
+  return JSON.stringify(history, null, 2);
 }
 
 export async function validateProjectAuditChain(
