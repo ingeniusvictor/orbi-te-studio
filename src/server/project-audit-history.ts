@@ -9,6 +9,7 @@ import { technicalDraftFingerprint } from "../web/review-integrity.js";
 const ALLOWED_ACTIONS = new Set([
   "approved",
   "approval-invalidated",
+  "ai-proposal-accepted",
   "package-generated"
 ]);
 
