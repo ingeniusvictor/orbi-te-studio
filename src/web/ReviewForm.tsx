@@ -23,7 +23,24 @@ export function ReviewForm({
     Boolean(draft.review.reviewerName.trim());
 
   const update = (patch: Partial<TE1FormDraft["review"]>) => {
-    onChange(applyReviewMetadataChange(draft, patch).draft);
+    const result = applyReviewMetadataChange(draft, patch);
+    onChange(result.draft);
+
+    if (
+      result.invalidated &&
+      typeof window !== "undefined"
+    ) {
+      void appendProjectAuditEvent(window.localStorage, {
+        projectId,
+        action: "approval-invalidated",
+        actor:
+          draft.review.reviewerName.trim() ||
+          result.draft.review.reviewerName.trim() ||
+          "ORBI TE Studio",
+        revisionFingerprint: technicalDraftFingerprint(result.draft),
+        details: result.draft.review.invalidationReason
+      });
+    }
   };
 
   const setApproved = (approved: boolean) => {
