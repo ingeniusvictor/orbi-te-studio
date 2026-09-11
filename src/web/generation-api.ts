@@ -1,4 +1,5 @@
 import type { TE1FormDraft } from "./te1-form-model.js";
+import type { ProjectAuditHistory } from "./audit-log.js";
 
 export interface ApiGeneratedArtifact {
   filename: string;
@@ -11,6 +12,7 @@ export interface GeneratePackageSuccess {
   ok: true;
   projectId: string;
   artifacts: ApiGeneratedArtifact[];
+  auditHistory: ProjectAuditHistory;
 }
 
 export interface GeneratePackageFailure {
@@ -41,7 +43,8 @@ export async function requestTE1Package(
     evidenceId: string;
     sha256: string;
   }>,
-  evidenceManifestJson: string
+  evidenceManifestJson: string,
+  auditHistoryJson: string
 ): Promise<GeneratePackageResponse> {
   const response = await fetch("/api/te1/generate", {
     method: "POST",
@@ -52,7 +55,8 @@ export async function requestTE1Package(
       draft,
       projectId,
       evidenceReceipts,
-      evidenceManifestJson
+      evidenceManifestJson,
+      auditHistoryJson
     })
   });
 
