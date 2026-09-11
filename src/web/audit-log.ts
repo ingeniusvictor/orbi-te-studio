@@ -89,7 +89,7 @@ export async function appendProjectAuditEvent(
     action: input.action,
     actor: input.actor.trim() || "ORBI TE Studio",
     occurredAt: (input.occurredAt ?? new Date()).toISOString(),
-    revisionFingerprint: input.revisionFingerprint,
+    revisionFingerprint: await sha256Text(input.revisionFingerprint),
     details: input.details?.trim() ?? "",
     previousHash
   };
