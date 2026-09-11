@@ -321,7 +321,11 @@ export function App() {
             projectId={wizard.projectId}
           />
 
-          <EvidenceManager projectId={wizard.projectId} />
+          <EvidenceManager
+            projectId={wizard.projectId}
+            draft={draft}
+            onDraftChange={updateDraft}
+          />
 
           <div className="split-grid">
               <div className="section-card">
