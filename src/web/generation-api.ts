@@ -24,10 +24,23 @@ export type GeneratePackageResponse =
   | GeneratePackageSuccess
   | GeneratePackageFailure;
 
+export interface EvidenceVerificationReceipt {
+  token: string;
+  projectId: string;
+  evidenceId: string;
+  sha256: string;
+  verifiedAt: string;
+  expiresAt: string;
+}
+
 export async function requestTE1Package(
   draft: TE1FormDraft,
   projectId: string,
-  evidenceUploads: EvidenceVerificationUpload[]
+  evidenceReceipts: Array<{
+    token: string;
+    evidenceId: string;
+    sha256: string;
+  }>
 ): Promise<GeneratePackageResponse> {
   const response = await fetch("/api/te1/generate", {
     method: "POST",
@@ -37,7 +50,7 @@ export async function requestTE1Package(
     body: JSON.stringify({
       draft,
       projectId,
-      evidenceUploads
+      evidenceReceipts
     })
   });
 
@@ -106,11 +119,13 @@ export interface EvidenceVerificationResponse {
   algorithm: "SHA-256";
   verifiedAt: string;
   items: EvidenceVerificationItem[];
+  receipts: EvidenceVerificationReceipt[];
   message?: string;
   issues?: string[];
 }
 
 export async function requestEvidenceVerification(
+  projectId: string,
   uploads: EvidenceVerificationUpload[]
 ): Promise<EvidenceVerificationResponse> {
   const response = await fetch("/api/te1/evidence/verify", {
@@ -118,7 +133,7 @@ export async function requestEvidenceVerification(
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify({ uploads })
+    body: JSON.stringify({ projectId, uploads })
   });
 
   const body = (await response.json()) as EvidenceVerificationResponse;
