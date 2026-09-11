@@ -21,6 +21,7 @@ import { TEAssistantService } from "../ai/te-assistant.js";
 import { validateTEAssistantRequest } from "./ai-runtime-validation.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
+const HOST = process.env.ORBI_API_HOST ?? "127.0.0.1";
 const MAX_BODY_BYTES = 30 * 1024 * 1024;
 const SERVER_AUDIT_LEDGER_PATH =
   process.env.ORBI_AUDIT_LEDGER_PATH ??
@@ -414,9 +415,9 @@ const server = createServer(async (request, response) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   process.stdout.write(
-    `ORBI TE Studio API listening on http://localhost:${PORT}\n`
+    `ORBI TE Studio API listening on http://${HOST}:${PORT}\n`
   );
 });
 
