@@ -50,6 +50,7 @@ export interface TE1FormDraft {
     destination: "casa-habitacion" | "departamento" | "otro";
     system: "monofasico" | "trifasico";
     voltageV: string;
+    surfaceM2: string;
   };
   owner: {
     name: string;
@@ -190,7 +191,8 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       name: "",
       destination: "casa-habitacion",
       system: "monofasico",
-      voltageV: "220"
+      voltageV: "220",
+      surfaceM2: ""
     },
     owner: {
       name: "",
@@ -245,7 +247,8 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       name: "Casa Goyo - Osorno",
       destination: "casa-habitacion",
       system: "monofasico",
-      voltageV: "220"
+      voltageV: "220",
+      surfaceM2: ""
     },
     owner: {
       name: "",
