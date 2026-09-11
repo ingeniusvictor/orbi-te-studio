@@ -87,6 +87,9 @@ export interface TE1FormDraft {
     notes: string;
     approved: boolean;
     approvedAt: string;
+    invalidated: boolean;
+    invalidatedAt: string;
+    invalidationReason: string;
   };
 }
 
@@ -220,7 +223,10 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       reviewerName: "",
       notes: "",
       approved: false,
-      approvedAt: ""
+      approvedAt: "",
+      invalidated: false,
+      invalidatedAt: "",
+      invalidationReason: ""
     }
   };
 }
@@ -284,7 +290,10 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       reviewerName: "",
       notes: "",
       approved: false,
-      approvedAt: ""
+      approvedAt: "",
+      invalidated: false,
+      invalidatedAt: "",
+      invalidationReason: ""
     }
   };
 }
