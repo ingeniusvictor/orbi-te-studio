@@ -48,6 +48,30 @@ describe("project audit history", () => {
     expect(await validateProjectAuditChain(storage, "TE1-1")).toEqual([]);
   });
 
+  it("serializes concurrent appends without breaking the hash chain", async () => {
+    const storage = new MemoryStorage();
+
+    await Promise.all([
+      appendProjectAuditEvent(storage, {
+        projectId: "TE1-1",
+        action: "ai-proposal-accepted",
+        actor: "ORBI TE Studio",
+        revisionFingerprint: "rev-a",
+        details: "board.mainCurrentA=25"
+      }),
+      appendProjectAuditEvent(storage, {
+        projectId: "TE1-1",
+        action: "approval-invalidated",
+        actor: "Profesional Prueba",
+        revisionFingerprint: "rev-a",
+        details: "Cambio técnico"
+      })
+    ]);
+
+    expect(listProjectAuditEvents(storage, "TE1-1")).toHaveLength(2);
+    expect(await validateProjectAuditChain(storage, "TE1-1")).toEqual([]);
+  });
+
   it("detects local tampering", async () => {
     const storage = new MemoryStorage();
 
