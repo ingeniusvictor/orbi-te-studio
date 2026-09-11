@@ -64,6 +64,10 @@ export interface TE1FormDraft {
     locationSketchEvidenceId: string;
     locationSketchEvidenceLabel: string;
     locationSketchVerified: boolean;
+    northStreet: string;
+    southStreet: string;
+    eastStreet: string;
+    westStreet: string;
   };
   board: {
     name: string;
@@ -200,7 +204,11 @@ export function createEmptyTE1FormDraft(): TE1FormDraft {
       utm: "",
       locationSketchEvidenceId: "",
       locationSketchEvidenceLabel: "",
-      locationSketchVerified: false
+      locationSketchVerified: false,
+      northStreet: "",
+      southStreet: "",
+      eastStreet: "",
+      westStreet: ""
     },
     board: {
       name: "",
@@ -251,7 +259,11 @@ export function createCasaGoyoDemoDraft(): TE1FormDraft {
       utm: "",
       locationSketchEvidenceId: "",
       locationSketchEvidenceLabel: "",
-      locationSketchVerified: false
+      locationSketchVerified: false,
+      northStreet: "",
+      southStreet: "",
+      eastStreet: "",
+      westStreet: ""
     },
     board: {
       name: "TDA CASA GOYO",
