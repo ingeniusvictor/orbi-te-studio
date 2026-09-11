@@ -7,7 +7,8 @@ export interface ApprovalInvalidationResult {
 
 export function applyTechnicalDraftChange(
   previous: TE1FormDraft,
-  next: TE1FormDraft
+  next: TE1FormDraft,
+  now = new Date()
 ): ApprovalInvalidationResult {
   if (!previous.review.approved) {
     return { draft: next, invalidated: false };
@@ -24,7 +25,11 @@ export function applyTechnicalDraftChange(
       review: {
         ...next.review,
         approved: false,
-        approvedAt: ""
+        approvedAt: "",
+        invalidated: true,
+        invalidatedAt: now.toISOString(),
+        invalidationReason:
+          "Cambió información técnica después de la aprobación profesional."
       }
     }
   };
@@ -32,7 +37,8 @@ export function applyTechnicalDraftChange(
 
 export function applyReviewMetadataChange(
   previous: TE1FormDraft,
-  patch: Partial<TE1FormDraft["review"]>
+  patch: Partial<TE1FormDraft["review"]>,
+  now = new Date()
 ): ApprovalInvalidationResult {
   const nextReview = {
     ...previous.review,
@@ -68,7 +74,13 @@ export function applyReviewMetadataChange(
       review: {
         ...nextReview,
         approved: false,
-        approvedAt: ""
+        approvedAt: "",
+        invalidated: true,
+        invalidatedAt: now.toISOString(),
+        invalidationReason:
+          reviewerChanged
+            ? "Cambió la identidad del profesional revisor."
+            : "Cambiaron las notas de revisión después de la aprobación."
       }
     }
   };
