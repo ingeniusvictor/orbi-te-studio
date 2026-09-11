@@ -38,7 +38,7 @@ export class QwenLocalProvider implements AIProvider {
     this.baseUrl = normalizeLocalAIBaseUrl(
       options.baseUrl ?? "http://127.0.0.1:11434"
     );
-    this.model = options.model ?? "qwen3:8b";
+    this.model = options.model ?? "qwen3:1.7b";
     this.timeoutMs = options.timeoutMs ?? 120_000;
     this.keepAlive = options.keepAlive ?? "5m";
     this.fetchImpl = options.fetchImpl ?? fetch;
@@ -109,6 +109,7 @@ export class QwenLocalProvider implements AIProvider {
         model: this.model,
         messages: request.messages,
         stream: false,
+        think: false,
         keep_alive: this.keepAlive,
         options: {
           temperature: request.temperature ?? 0.2,
