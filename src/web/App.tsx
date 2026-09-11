@@ -24,6 +24,7 @@ import { createProjectId } from "./project-storage.js";
 import { useProjectStorage } from "./use-project-storage.js";
 import { EvidenceManager } from "./EvidenceManager.js";
 import { deleteProjectEvidence } from "./evidence-store.js";
+import { applyTechnicalDraftChange } from "./review-integrity.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -64,6 +65,18 @@ export function App() {
     setWizard(stored.wizard);
     setSaveNotice("");
     setMode("te1");
+  };
+
+  const updateDraft = (next: TE1FormDraft) => {
+    const result = applyTechnicalDraftChange(draft, next);
+    setDraft(result.draft);
+    if (result.invalidated) {
+      setSaveNotice(
+        "La aprobación profesional quedó invalidada porque cambió información técnica del proyecto."
+      );
+    } else {
+      setSaveNotice("");
+    }
   };
 
   const saveProject = () => {
@@ -207,7 +220,9 @@ export function App() {
           <button className="save-button" onClick={saveProject}>
             Guardar proyecto
           </button>
-          <span className="status-pill warning">Borrador</span>
+          <span className={`status-pill ${draft.review.approved ? "complete" : "warning"}`}>
+            {draft.review.approved ? "Aprobación ORBI vigente" : "Borrador"}
+          </span>
         </div>
       </header>
 
@@ -254,7 +269,7 @@ export function App() {
               step={current.id}
               draft={draft}
               projectId={wizard.projectId}
-              onChange={setDraft}
+              onChange={updateDraft}
             />
 
             {!stepValidation.valid && (
