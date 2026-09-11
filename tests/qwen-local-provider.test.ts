@@ -4,11 +4,11 @@ import { QwenLocalProvider } from "../src/ai/qwen-local-provider.js";
 describe("Qwen local provider", () => {
   it("reports model readiness from Ollama tags", async () => {
     const provider = new QwenLocalProvider({
-      model: "qwen3:8b",
+      model: "qwen3:1.7b",
       fetchImpl: async () =>
         new Response(
           JSON.stringify({
-            models: [{ name: "qwen3:8b" }]
+            models: [{ name: "qwen3:1.7b" }]
           }),
           {
             status: 200,
@@ -24,12 +24,12 @@ describe("Qwen local provider", () => {
   it("maps ORBI chat messages to local Ollama chat", async () => {
     let body = "";
     const provider = new QwenLocalProvider({
-      model: "qwen3:8b",
+      model: "qwen3:1.7b",
       fetchImpl: async (_input, init) => {
         body = String(init?.body ?? "");
         return new Response(
           JSON.stringify({
-            model: "qwen3:8b",
+            model: "qwen3:1.7b",
             message: {
               role: "assistant",
               content: "Falta verificar el conductor."
@@ -65,10 +65,12 @@ describe("Qwen local provider", () => {
     const parsed = JSON.parse(body) as {
       model: string;
       stream: boolean;
+      think: boolean;
       options: { temperature: number; num_predict: number };
     };
-    expect(parsed.model).toBe("qwen3:8b");
+    expect(parsed.model).toBe("qwen3:1.7b");
     expect(parsed.stream).toBe(false);
+    expect(parsed.think).toBe(false);
     expect(parsed.options.temperature).toBe(0.1);
     expect(parsed.options.num_predict).toBe(200);
   });
@@ -78,7 +80,7 @@ describe("Qwen local provider", () => {
       fetchImpl: async () =>
         new Response(
           JSON.stringify({
-            model: "qwen3:8b",
+            model: "qwen3:1.7b",
             message: { content: "" },
             done: true
           }),
