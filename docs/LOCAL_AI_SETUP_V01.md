@@ -80,6 +80,23 @@ The command checks:
 
 A non-ready configured provider returns a non-zero exit status.
 
+## Real local smoke test
+
+After the doctor reports the Qwen provider as ready, run one real inference:
+
+```powershell
+$env:ORBI_AI_PROVIDER="qwen-local"
+$env:ORBI_QWEN_BASE_URL="http://127.0.0.1:11434"
+$env:ORBI_QWEN_MODEL="qwen3:1.7b"
+
+npm run ai:doctor
+npm run ai:smoke
+```
+
+The smoke test calls the same ORBI-controlled TE Assistant service used by the
+application. It does not call any external AI API and does not modify a TE1/TE4
+project.
+
 ## Runtime endpoints
 
 ```
