@@ -26,6 +26,7 @@ import { EvidenceManager } from "./EvidenceManager.js";
 import { deleteProjectEvidence } from "./evidence-store.js";
 import { applyTechnicalDraftChange, technicalDraftFingerprint } from "./review-integrity.js";
 import { appendProjectAuditEvent } from "./audit-log.js";
+import { LocalAssistantPanel } from "./LocalAssistantPanel.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -314,6 +315,11 @@ export function App() {
           </div>
 
           <DrawingPreview draft={draft} projectId={wizard.projectId} />
+
+          <LocalAssistantPanel
+            draft={draft}
+            projectId={wizard.projectId}
+          />
 
           <EvidenceManager projectId={wizard.projectId} />
 
