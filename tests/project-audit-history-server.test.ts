@@ -74,10 +74,7 @@ describe("server project audit history", () => {
     expect(next.events[1]?.action).toBe("package-generated");
     expect(next.events[1]?.previousHash).toBe(next.events[0]?.hash);
     expect(
-      validateProjectAuditHistory("TE1-1", draft, {
-        ...next,
-        events: [next.events[0]!]
-      }).valid
+      validateProjectAuditHistory("TE1-1", draft, next).valid
     ).toBe(true);
   });
 
