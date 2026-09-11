@@ -11,6 +11,7 @@ import {
   type LocalEvidenceMetadata
 } from "./evidence-types.js";
 import { shortSha256 } from "./evidence-hash.js";
+import { VisualEvidenceInsights } from "./VisualEvidenceInsights.js";
 
 export function EvidenceManager({ projectId }: { projectId: string }) {
   const [items, setItems] = useState<LocalEvidenceMetadata[]>([]);
@@ -175,6 +176,10 @@ export function EvidenceManager({ projectId }: { projectId: string }) {
                   Eliminar
                 </button>
               </div>
+              <VisualEvidenceInsights
+                projectId={projectId}
+                item={item}
+              />
             </article>
           ))}
         </div>
