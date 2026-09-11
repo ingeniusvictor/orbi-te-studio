@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { generateTE1FromDraft } from "./generate-te1-service.js";
 import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify-evidence-service.js";
 import { createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
+import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -104,10 +105,13 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      const receiptIssues = validateEvidenceVerificationReceipts(
-        projectId,
-        evidenceReceipts
-      );
+      const receiptIssues = [
+        ...auditReceiptCoverage(draft, evidenceReceipts),
+        ...validateEvidenceVerificationReceipts(
+          projectId,
+          evidenceReceipts
+        )
+      ];
       if (receiptIssues.length > 0) {
         json(response, 422, {
           ok: false,
