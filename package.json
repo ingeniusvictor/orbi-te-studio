@@ -14,7 +14,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve:api": "tsx src/server/dev-server.ts",
-    "ai:doctor": "tsx scripts/local-ai-doctor.ts"
+    "ai:doctor": "tsx scripts/local-ai-doctor.ts",
+    "ai:smoke": "tsx scripts/local-ai-smoke.ts"
   },
   "dependencies": {
     "pdfkit": "^0.17.2",
