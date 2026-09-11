@@ -182,9 +182,9 @@ export function App() {
               </div>
 
               <p className="storage-note">
-                Guardado local v1: permanece en este navegador. No sincroniza
-                todavía con nube y no almacena archivos adjuntos, solo los datos
-                y referencias ingresadas.
+                Guardado local v2: los datos del proyecto permanecen en este
+                navegador y los archivos de evidencia se almacenan en IndexedDB.
+                Todavía no existe sincronización con nube.
               </p>
             </div>
           )}
