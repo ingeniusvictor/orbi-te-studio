@@ -107,6 +107,14 @@ export async function appendProjectAuditEvent(
     } satisfies AuditEnvelope)
   );
 
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("orbi:audit-changed", {
+        detail: { projectId: input.projectId }
+      })
+    );
+  }
+
   return event;
 }
 
