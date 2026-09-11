@@ -31,6 +31,8 @@ export interface ServerAuditLedger {
   events: ServerLedgerEvent[];
 }
 
+let ledgerMutationQueue: Promise<void> = Promise.resolve();
+
 export async function loadServerAuditLedger(
   filePath: string
 ): Promise<ServerAuditLedger> {
@@ -73,42 +75,44 @@ export async function syncClientAuditHistoryToServerLedger(
   filePath: string,
   history: ProjectAuditHistory
 ): Promise<ServerAuditLedger> {
-  const ledger = await loadServerAuditLedger(filePath);
-  let next = ledger;
+  return serializeLedgerMutation(async () => {
+    const ledger = await loadServerAuditLedger(filePath);
+    let next = ledger;
 
-  for (const event of history.events) {
-    if (
-      event.action !== "approved" &&
-      event.action !== "approval-invalidated"
-    ) {
-      continue;
+    for (const event of history.events) {
+      if (
+        event.action !== "approved" &&
+        event.action !== "approval-invalidated"
+      ) {
+        continue;
+      }
+
+      validateClientEventHash(event);
+
+      if (
+        next.events.some(
+          (stored) => stored.sourceEventHash === event.hash
+        )
+      ) {
+        continue;
+      }
+
+      next = appendLedgerEvent(next, {
+        projectId: event.projectId,
+        action:
+          event.action === "approved"
+            ? "client-approved"
+            : "client-approval-invalidated",
+        actor: event.actor,
+        occurredAt: event.occurredAt,
+        revisionFingerprint: event.revisionFingerprint,
+        sourceEventHash: event.hash
+      });
     }
 
-    validateClientEventHash(event);
-
-    if (
-      next.events.some(
-        (stored) => stored.sourceEventHash === event.hash
-      )
-    ) {
-      continue;
-    }
-
-    next = appendLedgerEvent(next, {
-      projectId: event.projectId,
-      action:
-        event.action === "approved"
-          ? "client-approved"
-          : "client-approval-invalidated",
-      actor: event.actor,
-      occurredAt: event.occurredAt,
-      revisionFingerprint: event.revisionFingerprint,
-      sourceEventHash: event.hash
-    });
-  }
-
-  await saveServerAuditLedger(filePath, next);
-  return next;
+    await saveServerAuditLedger(filePath, next);
+    return next;
+  });
 }
 
 export async function appendServerPackageEvent(
@@ -120,17 +124,19 @@ export async function appendServerPackageEvent(
     occurredAt?: Date;
   }
 ): Promise<ServerAuditLedger> {
-  const ledger = await loadServerAuditLedger(filePath);
-  const next = appendLedgerEvent(ledger, {
-    projectId: input.projectId,
-    action: "package-generated",
-    actor: input.actor,
-    occurredAt: (input.occurredAt ?? new Date()).toISOString(),
-    revisionFingerprint: input.revisionFingerprint,
-    sourceEventHash: ""
+  return serializeLedgerMutation(async () => {
+    const ledger = await loadServerAuditLedger(filePath);
+    const next = appendLedgerEvent(ledger, {
+      projectId: input.projectId,
+      action: "package-generated",
+      actor: input.actor,
+      occurredAt: (input.occurredAt ?? new Date()).toISOString(),
+      revisionFingerprint: input.revisionFingerprint,
+      sourceEventHash: ""
+    });
+    await saveServerAuditLedger(filePath, next);
+    return next;
   });
-  await saveServerAuditLedger(filePath, next);
-  return next;
 }
 
 export function validateServerLedgerChain(
@@ -271,6 +277,23 @@ function emptyLedger(): ServerAuditLedger {
     schemaVersion: SERVER_LEDGER_SCHEMA,
     events: []
   };
+}
+
+async function serializeLedgerMutation<T>(
+  task: () => Promise<T>
+): Promise<T> {
+  const previous = ledgerMutationQueue;
+  let release!: () => void;
+  ledgerMutationQueue = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous;
+  try {
+    return await task();
+  } finally {
+    release();
+  }
 }
 
 function isServerLedgerEvent(
