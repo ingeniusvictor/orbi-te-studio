@@ -67,6 +67,7 @@ export interface TE1Project {
   destination: "casa-habitacion" | "departamento" | "otro";
   system: "monofasico" | "trifasico";
   voltageV: number;
+  surfaceM2?: number;
   boardName: string;
   location: ProjectLocation;
   mainProtection?: Protection;
