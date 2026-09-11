@@ -5,6 +5,7 @@ import type {
   VisionProvider,
   VisionProviderHealth
 } from "./vision-provider.js";
+import { normalizeLocalAIBaseUrl } from "./local-endpoint.js";
 
 export interface QwenVisionProviderOptions {
   baseUrl?: string;
@@ -32,8 +33,9 @@ export class QwenVisionProvider implements VisionProvider {
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: QwenVisionProviderOptions = {}) {
-    this.baseUrl = (options.baseUrl ?? "http://127.0.0.1:11434")
-      .replace(/\/+$/, "");
+    this.baseUrl = normalizeLocalAIBaseUrl(
+      options.baseUrl ?? "http://127.0.0.1:11434"
+    );
     this.model = options.model ?? "qwen2.5vl:3b";
     this.timeoutMs = options.timeoutMs ?? 120_000;
     this.keepAlive = options.keepAlive ?? "0";
