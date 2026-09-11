@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import {
   clearEvidenceVerificationReceipts,
+  consumeEvidenceVerificationReceipts,
   createEvidenceVerificationReceipt,
   validateEvidenceVerificationReceipts
 } from "../src/server/evidence-verification-registry.js";
@@ -30,6 +31,26 @@ describe("evidence verification receipts", () => {
         new Date("2026-09-10T23:55:00.000Z")
       )
     ).toEqual([]);
+  });
+
+  it("rejects a receipt after it has been consumed", () => {
+    const receipt = createEvidenceVerificationReceipt(
+      "TE1-1",
+      "EV-1",
+      "a".repeat(64)
+    );
+
+    consumeEvidenceVerificationReceipts([receipt.token]);
+
+    const issues = validateEvidenceVerificationReceipts("TE1-1", [
+      {
+        token: receipt.token,
+        evidenceId: "EV-1",
+        sha256: "a".repeat(64)
+      }
+    ]);
+
+    expect(issues[0]).toContain("inexistente o expirado");
   });
 
   it("rejects an expired receipt", () => {
