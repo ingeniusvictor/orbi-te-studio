@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { renderDraftA2Svg } from "./draft-drawing.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 
@@ -13,6 +13,17 @@ export function DrawingPreview({
     () => renderDraftA2Svg(draft, projectId),
     [draft, projectId]
   );
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  useEffect(() => {
+    const blob = new Blob([svg], {
+      type: "image/svg+xml;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    setPreviewUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [svg]);
 
   const downloadSvg = () => {
     const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
@@ -39,8 +50,14 @@ export function DrawingPreview({
       <div
         className="svg-preview"
         aria-label="Previsualización de lámina A2"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+      >
+        {previewUrl && (
+          <img
+            src={previewUrl}
+            alt="Previsualización de lámina A2 TE1"
+          />
+        )}
+      </div>
 
       <small className="preview-note">
         La previsualización no implica cumplimiento ni aprobación. Los datos
