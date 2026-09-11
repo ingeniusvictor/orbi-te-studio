@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildTE1VisionProposals } from "../src/ai/vision-observation-proposals.js";
+import { applyTE1VisionProposal, buildTE1VisionProposals } from "../src/ai/vision-observation-proposals.js";
+import { createCasaGoyoDemoDraft } from "../src/web/te1-form-model.js";
 
 describe("vision observation proposals", () => {
   it("creates manual board proposals only from observed medium/high confidence values", () => {
@@ -42,6 +43,25 @@ describe("vision observation proposals", () => {
       }
     ]);
     expect(result.ignored).toHaveLength(2);
+  });
+
+  it("applies only an explicitly accepted allowlisted board proposal", () => {
+    const draft = createCasaGoyoDemoDraft();
+    draft.board.mainCurrentA = "";
+
+    const next = applyTE1VisionProposal(draft, {
+      target: "board.mainCurrentA",
+      proposedValue: "25",
+      evidenceId: "EV-1",
+      confidence: "high",
+      sourceStatus: "OBSERVED",
+      note: "C25 legible.",
+      requiresManualAcceptance: true
+    });
+
+    expect(next.board.mainCurrentA).toBe("25");
+    expect(draft.board.mainCurrentA).toBe("");
+    expect(next.review.approved).toBe(false);
   });
 
   it("never converts pending observations into proposals", () => {
