@@ -1,6 +1,7 @@
 import { buildReviewGateSummary } from "./review-summary.js";
 import { useEvidenceAudit } from "./use-evidence-audit.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
+import { applyReviewMetadataChange } from "./review-integrity.js";
 
 export function ReviewForm({
   draft,
@@ -19,11 +20,9 @@ export function ReviewForm({
     !evidenceAudit.checking &&
     Boolean(draft.review.reviewerName.trim());
 
-  const update = (patch: Partial<TE1FormDraft["review"]>) =>
-    onChange({
-      ...draft,
-      review: { ...draft.review, ...patch }
-    });
+  const update = (patch: Partial<TE1FormDraft["review"]>) => {
+    onChange(applyReviewMetadataChange(draft, patch).draft);
+  };
 
   const setApproved = (approved: boolean) => {
     update({
@@ -114,13 +113,21 @@ export function ReviewForm({
         </button>
       </div>
 
-      {draft.review.approved && (
+      {draft.review.approved ? (
         <div className="approval-record">
           <strong>APROBADO PARA PREPARACIÓN DE EXPORTACIÓN</strong>
           <span>{draft.review.reviewerName}</span>
           <small>{draft.review.approvedAt}</small>
         </div>
-      )}
+      ) : draft.review.approvedAt === "" && draft.review.reviewerName.trim() ? (
+        <div className="approval-record warning">
+          <strong>APROBACIÓN NO VIGENTE</strong>
+          <span>
+            Si el proyecto fue aprobado previamente, cualquier cambio técnico,
+            de revisor o de notas exige una nueva aprobación.
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
