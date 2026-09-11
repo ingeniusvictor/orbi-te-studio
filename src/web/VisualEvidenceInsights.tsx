@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { getEvidenceBlob } from "./evidence-store.js";
 import { applyTE1VisionProposal, buildTE1VisionProposals } from "../ai/vision-observation-proposals.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
+import { appendProjectAuditEvent } from "./audit-log.js";
+import { technicalDraftFingerprint } from "./review-integrity.js";
 import type {
   EvidenceCategory,
   LocalEvidenceMetadata
@@ -205,11 +207,30 @@ export function VisualEvidenceInsights({
                   <button
                     type="button"
                     className="secondary compact"
-                    onClick={() =>
-                      onDraftChange(
-                        applyTE1VisionProposal(draft, proposal)
-                      )
-                    }
+                    onClick={() => {
+                      const nextDraft = applyTE1VisionProposal(
+                        draft,
+                        proposal
+                      );
+                      onDraftChange(nextDraft);
+
+                      if (typeof window !== "undefined") {
+                        void appendProjectAuditEvent(
+                          window.localStorage,
+                          {
+                            projectId,
+                            action: "ai-proposal-accepted",
+                            actor:
+                              draft.review.reviewerName.trim() ||
+                              "ORBI TE Studio",
+                            revisionFingerprint:
+                              technicalDraftFingerprint(nextDraft),
+                            details:
+                              `${proposal.target}=${proposal.proposedValue}; evidenceId=${proposal.evidenceId}; confidence=${proposal.confidence}`
+                          }
+                        );
+                      }
+                    }}
                   >
                     Aplicar propuesta
                   </button>
