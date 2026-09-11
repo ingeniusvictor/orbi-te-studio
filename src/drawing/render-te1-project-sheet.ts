@@ -10,6 +10,7 @@ import { renderUnilinearPanel } from "./render-unilinear-svg.js";
 import { getRic18SheetGeometry } from "./ric18-layout.js";
 import { esc, rect, text } from "./svg-primitives.js";
 import type { TitleBlock } from "./sheet-model.js";
+import type { LocationSketchModel } from "./location-sketch.js";
 
 export interface TE1ProjectSheetOptions {
   ownerName?: string;
@@ -20,6 +21,7 @@ export interface TE1ProjectSheetOptions {
   scale?: string;
   sheet?: string;
   locationSketchVerified?: boolean;
+  locationSketchModel?: LocationSketchModel;
 }
 
 const style = `
@@ -137,14 +139,7 @@ export function renderTE1ProjectRic18A2Svg(
     ),
     `<g transform="translate(${geometry.croquisBox.x},${geometry.footerBand.y})">${renderRic18Footer(
       titleBlock,
-      project.location.address &&
-        (project.location.wgs84 || project.location.utm) &&
-        options.locationSketchVerified
-        ? {
-            status: "verified",
-            propertyLabel: project.location.address
-          }
-        : { status: "pending" }
+      options.locationSketchModel ?? { status: "pending" }
     )}</g>`
   ];
 
