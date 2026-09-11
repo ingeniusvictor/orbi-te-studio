@@ -40,7 +40,8 @@ export async function requestTE1Package(
     token: string;
     evidenceId: string;
     sha256: string;
-  }>
+  }>,
+  evidenceManifestJson: string
 ): Promise<GeneratePackageResponse> {
   const response = await fetch("/api/te1/generate", {
     method: "POST",
@@ -50,7 +51,8 @@ export async function requestTE1Package(
     body: JSON.stringify({
       draft,
       projectId,
-      evidenceReceipts
+      evidenceReceipts,
+      evidenceManifestJson
     })
   });
 
