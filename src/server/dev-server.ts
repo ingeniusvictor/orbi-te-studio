@@ -12,12 +12,16 @@ import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gat
 import { buildTE1PackageZip } from "./te1-package-zip.js";
 import { buildTE1PackageReadme } from "./te1-package-readme.js";
 import { appendServerPackageGeneratedEvent, projectAuditHistoryToJson, validateProjectAuditHistory } from "./project-audit-history.js";
+import { appendServerPackageEvent, serverAuditLedgerForProject, serverAuditLedgerToJson, syncClientAuditHistoryToServerLedger, validateServerApprovalForRevision } from "./server-audit-ledger.js";
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 import type { ProjectAuditHistory } from "../web/audit-log.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MAX_BODY_BYTES = 30 * 1024 * 1024;
+const SERVER_AUDIT_LEDGER_PATH =
+  process.env.ORBI_AUDIT_LEDGER_PATH ??
+  `${process.cwd()}/.orbi-data/server-audit-ledger.json`;
 
 const server = createServer(async (request, response) => {
   setCors(response);
@@ -200,6 +204,26 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      const serverLedger = await syncClientAuditHistoryToServerLedger(
+        SERVER_AUDIT_LEDGER_PATH,
+        auditHistory
+      );
+      const serverLedgerIssues = validateServerApprovalForRevision(
+        serverLedger,
+        projectId,
+        auditValidation.revisionFingerprint
+      );
+      if (serverLedgerIssues.length > 0) {
+        json(response, 422, {
+          ok: false,
+          code: "SERVER_AUDIT_LEDGER_INVALID",
+          message:
+            "El ledger server-side no confirma una aprobación vigente para la revisión actual.",
+          issues: serverLedgerIssues
+        });
+        return;
+      }
+
       const receiptIssues = [
         ...auditReceiptCoverage(draft, evidenceReceipts),
         ...validateEvidenceVerificationReceipts(
@@ -251,6 +275,18 @@ const server = createServer(async (request, response) => {
         draft,
         auditHistory
       );
+      const serverLedgerAfterGeneration = await appendServerPackageEvent(
+        SERVER_AUDIT_LEDGER_PATH,
+        {
+          projectId,
+          actor: "ORBI TE Studio API",
+          revisionFingerprint: auditValidation.revisionFingerprint
+        }
+      );
+      const projectServerLedger = serverAuditLedgerForProject(
+        serverLedgerAfterGeneration,
+        projectId
+      );
 
       const packageArtifacts: PackageArtifactInput[] = [
         ...result.artifacts,
@@ -286,6 +322,14 @@ const server = createServer(async (request, response) => {
           encoding: "utf8",
           content: projectAuditHistoryToJson(
             extendedAuditHistory
+          )
+        },
+        {
+          filename: `${projectId}_TE1_server_audit_ledger.json`,
+          mimeType: "application/json",
+          encoding: "utf8",
+          content: serverAuditLedgerToJson(
+            projectServerLedger
           )
         }
       ];
