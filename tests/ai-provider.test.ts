@@ -20,11 +20,11 @@ describe("local AI provider contract", () => {
   it("selects qwen-local without changing ORBI core", () => {
     const provider = createAIProvider({
       providerId: "qwen-local",
-      qwenModel: "qwen3:8b"
+      qwenModel: "qwen3:1.7b"
     });
 
     expect(provider.id).toBe("qwen-local");
-    expect(provider.model).toBe("qwen3:8b");
+    expect(provider.model).toBe("qwen3:1.7b");
   });
 
   it("rejects unsupported provider ids", () => {
