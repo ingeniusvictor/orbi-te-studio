@@ -12,8 +12,17 @@ import {
 } from "./evidence-types.js";
 import { shortSha256 } from "./evidence-hash.js";
 import { VisualEvidenceInsights } from "./VisualEvidenceInsights.js";
+import type { TE1FormDraft } from "./te1-form-model.js";
 
-export function EvidenceManager({ projectId }: { projectId: string }) {
+export function EvidenceManager({
+  projectId,
+  draft,
+  onDraftChange
+}: {
+  projectId: string;
+  draft: TE1FormDraft;
+  onDraftChange: (draft: TE1FormDraft) => void;
+}) {
   const [items, setItems] = useState<LocalEvidenceMetadata[]>([]);
   const [category, setCategory] =
     useState<EvidenceCategory>("general");
@@ -179,6 +188,8 @@ export function EvidenceManager({ projectId }: { projectId: string }) {
               <VisualEvidenceInsights
                 projectId={projectId}
                 item={item}
+                draft={draft}
+                onDraftChange={onDraftChange}
               />
             </article>
           ))}
