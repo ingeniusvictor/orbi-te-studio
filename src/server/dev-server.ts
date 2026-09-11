@@ -51,7 +51,13 @@ const server = createServer(async (request, response) => {
             createEvidenceVerificationReceipt(
               projectId,
               item.evidenceId,
-              item.actualSha256
+              item.actualSha256,
+              new Date(),
+              {
+                filename: item.filename,
+                mimeType: item.mimeType,
+                sizeBytes: item.sizeBytes
+              }
             )
           )
         : [];
