@@ -220,6 +220,12 @@ function normalizeDraft(value: unknown): TE1FormDraft {
       ...(raw.plan ?? {}),
       sourceEvidenceId: raw.plan?.sourceEvidenceId ?? ""
     },
-    review: { ...base.review, ...(raw.review ?? {}) }
+    review: {
+      ...base.review,
+      ...(raw.review ?? {}),
+      invalidated: raw.review?.invalidated ?? false,
+      invalidatedAt: raw.review?.invalidatedAt ?? "",
+      invalidationReason: raw.review?.invalidationReason ?? ""
+    }
   };
 }
