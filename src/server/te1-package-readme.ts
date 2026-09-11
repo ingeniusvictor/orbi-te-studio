@@ -14,7 +14,9 @@ export function buildTE1PackageReadme(
 ): TE1PackageReadmeArtifact {
   const reviewStatus = draft.review.approved
     ? "APROBADO PARA PREPARACION DE EXPORTACION EN ORBI"
-    : "PENDIENTE EN ORBI";
+    : draft.review.invalidated
+      ? "APROBACION INVALIDADA - REQUIERE NUEVA REVISION"
+      : "PENDIENTE EN ORBI";
 
   const location = [
     draft.location.address,
@@ -39,6 +41,9 @@ export function buildTE1PackageReadme(
     `Estado ORBI: ${reviewStatus}`,
     `Profesional revisor: ${draft.review.reviewerName || "PENDIENTE"}`,
     `Fecha de aprobacion ORBI: ${draft.review.approvedAt || "PENDIENTE"}`,
+    `Aprobacion invalidada: ${draft.review.invalidated ? "SI" : "NO"}`,
+    `Fecha de invalidacion: ${draft.review.invalidatedAt || "NO APLICA"}`,
+    `Motivo de invalidacion: ${draft.review.invalidationReason || "NO APLICA"}`,
     "",
     "ESTRUCTURA DEL PAQUETE",
     "---------------------",
