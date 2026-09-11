@@ -1,5 +1,6 @@
 import { buildComplianceSummary } from "./compliance-summary.js";
 import { buildProjectManifest } from "../export/project-manifest.js";
+import { validateTE1 } from "../engine/validate-te1.js";
 import { draftToTE1Project } from "./draft-to-project.js";
 import type { TE1FormDraft } from "./te1-form-model.js";
 
@@ -19,6 +20,10 @@ export interface WebExportSummary {
 export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
   const project = draftToTE1Project(draft);
   const compliance = buildComplianceSummary(draft);
+  const engineeringValidation = validateTE1(project);
+  const engineeringBlockers = engineeringValidation.findings.filter(
+    (finding) => finding.severity === "blocker"
+  );
   const hasCircuits = project.circuits.length > 0;
   const hasLoads = project.circuits.every(
     (circuit) => circuit.installedPowerW !== undefined
@@ -35,9 +40,25 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
   const approvedForPreparation =
     draft.review.approved &&
     Boolean(draft.review.reviewerName.trim()) &&
-    compliance.ready;
+    compliance.ready &&
+    engineeringBlockers.length === 0;
 
   const documents: ExportDocumentStatus[] = [
+    {
+      id: "engineering-validation",
+      label: "Validación técnica TE1",
+      status:
+        engineeringBlockers.length === 0
+          ? "ready-to-generate"
+          : "pending",
+      ...(engineeringBlockers.length > 0
+        ? {
+            reason: engineeringBlockers
+              .map((finding) => finding.message)
+              .join(" · ")
+          }
+        : {})
+    },
     {
       id: "electrical-plan",
       label: "Planta eléctrica",
