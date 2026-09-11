@@ -9,6 +9,7 @@ import { buildTE1PhotographicReport } from "./te1-photographic-report.js";
 import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
 import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput } from "./te1-package-index.js";
 import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gate.js";
+import { buildTE1PackageZip } from "./te1-package-zip.js";
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
@@ -243,6 +244,11 @@ const server = createServer(async (request, response) => {
         }
       ];
 
+      const packageZip = buildTE1PackageZip(
+        projectId,
+        finalArtifacts
+      );
+
       const receiptTokens = evidenceReceipts.map(
         (receipt) => receipt.token
       );
@@ -251,7 +257,15 @@ const server = createServer(async (request, response) => {
 
       json(response, 200, {
         ...result,
-        artifacts: finalArtifacts
+        artifacts: [
+          {
+            filename: packageZip.filename,
+            mimeType: packageZip.mimeType,
+            encoding: "base64",
+            content: Buffer.from(packageZip.bytes).toString("base64")
+          },
+          ...finalArtifacts
+        ]
       });
       return;
     } catch (error) {
