@@ -4,6 +4,8 @@ import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify
 import { consumeEvidenceVerificationReceipts, createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
 import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
+import { buildProjectEvidenceReport } from "./project-evidence-report.js";
+import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./verified-evidence-buffer-registry.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -47,8 +49,8 @@ const server = createServer(async (request, response) => {
 
       const result = verifyEvidenceUploads(uploads);
       const receipts = result.ok
-        ? result.items.map((item) =>
-            createEvidenceVerificationReceipt(
+        ? result.items.map((item, index) => {
+            const receipt = createEvidenceVerificationReceipt(
               projectId,
               item.evidenceId,
               item.actualSha256,
@@ -58,8 +60,16 @@ const server = createServer(async (request, response) => {
                 mimeType: item.mimeType,
                 sizeBytes: item.sizeBytes
               }
-            )
-          )
+            );
+            const upload = uploads[index];
+            if (upload) {
+              storeVerifiedEvidenceBuffer(
+                receipt.token,
+                upload.contentBase64
+              );
+            }
+            return receipt;
+          })
         : [];
       json(response, result.ok ? 200 : 422, { ...result, receipts });
       return;
@@ -136,20 +146,34 @@ const server = createServer(async (request, response) => {
         evidenceReceipts
       );
 
+      const evidenceReport = await buildProjectEvidenceReport(
+        projectId,
+        draft,
+        evidenceReceipts
+      );
+
       const result = await generateTE1FromDraft(draft, projectId);
       if (!result.ok) {
         json(response, result.status, result);
         return;
       }
 
-      consumeEvidenceVerificationReceipts(
-        evidenceReceipts.map((receipt) => receipt.token)
+      const receiptTokens = evidenceReceipts.map(
+        (receipt) => receipt.token
       );
+      consumeEvidenceVerificationReceipts(receiptTokens);
+      consumeVerifiedEvidenceBuffers(receiptTokens);
 
       json(response, 200, {
         ...result,
         artifacts: [
           ...result.artifacts,
+          {
+            filename: evidenceReport.filename,
+            mimeType: evidenceReport.mimeType,
+            encoding: "base64",
+            content: Buffer.from(evidenceReport.bytes).toString("base64")
+          },
           {
             filename: `${projectId}_TE1_server_verification_manifest.json`,
             mimeType: "application/json",
