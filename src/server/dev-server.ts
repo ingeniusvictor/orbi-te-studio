@@ -132,6 +132,7 @@ const server = createServer(async (request, response) => {
 
       const verificationManifest = buildServerEvidenceVerificationManifest(
         projectId,
+        draft,
         evidenceReceipts
       );
 
