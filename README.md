@@ -58,6 +58,37 @@ GET  /api/ai/health
 POST /api/ai/chat
 ```
 
+La visión local es opt-in:
+
+```
+ORBI_VISION_PROVIDER=qwen-vision-local
+ORBI_QWEN_VISION_MODEL=qwen2.5vl:3b
+```
+
+y usa:
+
+```
+GET  /api/ai/vision/health
+POST /api/ai/vision/analyze
+```
+
+Diagnóstico rápido:
+
+```bash
+npm run ai:doctor
+```
+
+Los proveedores IA v0.1 están restringidos a localhost/loopback.
+
 La capa visual permanece observation-only: cualquier dato visual no legible debe
 quedar como `PENDING` y nunca convertirse silenciosamente en un valor técnico
-verificado.
+verificado. Solo campos de tablero permitidos, observados y con confianza
+media/alta pueden transformarse en propuestas, y siempre requieren aceptación
+manual.
+
+Después de aceptar una propuesta, ORBI usa el flujo normal del draft, registra el
+evento de auditoría y, si corresponde, invalida la aprobación profesional previa.
+
+El tablero final no se genera con IA de imágenes: ORBI produce un SVG técnico
+determinista desde los datos registrados y lo incorpora al paquete TE1 como
+`*_TE1_tablero_frontal.svg`.
