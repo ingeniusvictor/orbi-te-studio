@@ -119,6 +119,14 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
       ...(!approvedForPreparation
         ? { reason: "Se genera junto con el paquete técnico final." }
         : {})
+    },
+    {
+      id: "organized-zip",
+      label: "Paquete TE1 organizado (.zip)",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Agrupa los artefactos finales por carpeta." }
+        : {})
     }
   ];
 
