@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { generateTE1FromDraft } from "./generate-te1-service.js";
 import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify-evidence-service.js";
-import { createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
+import { consumeEvidenceVerificationReceipts, createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
 import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
@@ -141,6 +141,10 @@ const server = createServer(async (request, response) => {
         json(response, result.status, result);
         return;
       }
+
+      consumeEvidenceVerificationReceipts(
+        evidenceReceipts.map((receipt) => receipt.token)
+      );
 
       json(response, 200, {
         ...result,
