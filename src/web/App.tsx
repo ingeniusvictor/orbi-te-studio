@@ -24,7 +24,8 @@ import { createProjectId } from "./project-storage.js";
 import { useProjectStorage } from "./use-project-storage.js";
 import { EvidenceManager } from "./EvidenceManager.js";
 import { deleteProjectEvidence } from "./evidence-store.js";
-import { applyTechnicalDraftChange } from "./review-integrity.js";
+import { applyTechnicalDraftChange, technicalDraftFingerprint } from "./review-integrity.js";
+import { appendProjectAuditEvent } from "./audit-log.js";
 
 type ProjectMode = "home" | "te1";
 
@@ -71,6 +72,15 @@ export function App() {
     const result = applyTechnicalDraftChange(draft, next);
     setDraft(result.draft);
     if (result.invalidated) {
+      if (typeof window !== "undefined") {
+        void appendProjectAuditEvent(window.localStorage, {
+          projectId: wizard.projectId,
+          action: "approval-invalidated",
+          actor: draft.review.reviewerName.trim() || "ORBI TE Studio",
+          revisionFingerprint: technicalDraftFingerprint(result.draft),
+          details: result.draft.review.invalidationReason
+        });
+      }
       setSaveNotice(
         "La aprobación profesional quedó invalidada porque cambió información técnica del proyecto."
       );
