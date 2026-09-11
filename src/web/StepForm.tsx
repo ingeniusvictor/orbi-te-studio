@@ -106,6 +106,14 @@ export function StepForm({ step, draft, projectId, onChange }: Props) {
         <Field label="Tensión nominal (V)">
           <input value={draft.project.voltageV} onChange={updateProject("voltageV")} inputMode="decimal" />
         </Field>
+        <Field label="Superficie vivienda (m²)">
+          <input
+            value={draft.project.surfaceM2}
+            onChange={updateProject("surfaceM2")}
+            inputMode="decimal"
+            placeholder="Ej. 54"
+          />
+        </Field>
       </div>
     );
   }
