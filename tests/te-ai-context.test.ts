@@ -17,5 +17,9 @@ describe("TE Assistant deterministic context", () => {
     expect(context).toContain(
       "excluye nombre y RUT del propietario"
     );
+    expect(context).toContain("Blockers deterministas TE1:");
+    expect(context).toContain(
+      "los hallazgos anteriores provienen de motores deterministas ORBI"
+    );
   });
 });
