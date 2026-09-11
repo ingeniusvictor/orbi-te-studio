@@ -9,6 +9,9 @@ describe("local AI endpoint policy", () => {
     expect(
       normalizeLocalAIBaseUrl("http://localhost:11434")
     ).toBe("http://localhost:11434");
+    expect(
+      normalizeLocalAIBaseUrl("http://[::1]:11434/")
+    ).toBe("http://[::1]:11434");
   });
 
   it("rejects remote hosts", () => {
