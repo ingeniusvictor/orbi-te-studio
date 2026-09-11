@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { generateTE1FromDraft } from "./generate-te1-service.js";
 import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify-evidence-service.js";
+import { createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -27,6 +28,8 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/api/te1/evidence/verify") {
     try {
       const payload = await readJsonBody(request);
+      const projectId =
+        (payload as { projectId?: string }).projectId?.trim() || "TE1-DRAFT";
       const uploads = (payload as { uploads?: EvidenceVerificationUpload[] }).uploads;
 
       if (!Array.isArray(uploads) || uploads.length === 0) {
@@ -41,7 +44,16 @@ const server = createServer(async (request, response) => {
       }
 
       const result = verifyEvidenceUploads(uploads);
-      json(response, result.ok ? 200 : 422, result);
+      const receipts = result.ok
+        ? result.items.map((item) =>
+            createEvidenceVerificationReceipt(
+              projectId,
+              item.evidenceId,
+              item.actualSha256
+            )
+          )
+        : [];
+      json(response, result.ok ? 200 : 422, { ...result, receipts });
       return;
     } catch (error) {
       json(response, 422, {
@@ -62,8 +74,14 @@ const server = createServer(async (request, response) => {
       const draft = (payload as { draft?: TE1FormDraft }).draft;
       const projectId =
         (payload as { projectId?: string }).projectId?.trim() || "TE1-DRAFT";
-      const evidenceUploads =
-        (payload as { evidenceUploads?: EvidenceVerificationUpload[] }).evidenceUploads;
+      const evidenceReceipts =
+        (payload as {
+          evidenceReceipts?: Array<{
+            token: string;
+            evidenceId: string;
+            sha256: string;
+          }>;
+        }).evidenceReceipts;
 
       if (!draft) {
         json(response, 422, {
@@ -75,42 +93,34 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      if (!Array.isArray(evidenceUploads) || evidenceUploads.length === 0) {
+      if (!Array.isArray(evidenceReceipts) || evidenceReceipts.length === 0) {
         json(response, 422, {
           ok: false,
           code: "INVALID_REQUEST",
           message:
-            "La generación TE1 requiere evidencia binaria para verificación server-side.",
-          issues: ["evidenceUploads es obligatorio."]
+            "La generación TE1 requiere comprobantes de evidencia verificada.",
+          issues: ["evidenceReceipts es obligatorio."]
         });
         return;
       }
 
-      const verification = verifyEvidenceUploads(evidenceUploads);
-      if (!verification.ok) {
+      const receiptIssues = validateEvidenceVerificationReceipts(
+        projectId,
+        evidenceReceipts
+      );
+      if (receiptIssues.length > 0) {
         json(response, 422, {
           ok: false,
           code: "EVIDENCE_VERIFICATION_FAILED",
           message:
-            "La evidencia recibida no superó la verificación SHA-256 en servidor.",
-          issues: verification.items.flatMap((item) =>
-            item.issues.map(
-              (issue) => `${item.filename} [${item.evidenceId}]: ${issue}`
-            )
-          ),
-          evidenceVerification: verification
+            "Los comprobantes SHA-256 de evidencia no son válidos para este proyecto.",
+          issues: receiptIssues
         });
         return;
       }
 
       const result = await generateTE1FromDraft(draft, projectId);
-      json(
-        response,
-        result.ok ? 200 : result.status,
-        result.ok
-          ? { ...result, evidenceVerification: verification }
-          : result
-      );
+      json(response, result.ok ? 200 : result.status, result);
       return;
     } catch (error) {
       json(response, 422, {
