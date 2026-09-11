@@ -121,6 +121,14 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
         : {})
     },
     {
+      id: "package-readme",
+      label: "LEEME del paquete TE1",
+      status: approvedForPreparation ? "ready-to-generate" : "pending",
+      ...(!approvedForPreparation
+        ? { reason: "Documenta estructura, revisión e integridad del paquete." }
+        : {})
+    },
+    {
       id: "organized-zip",
       label: "Paquete TE1 organizado (.zip)",
       status: approvedForPreparation ? "ready-to-generate" : "pending",
