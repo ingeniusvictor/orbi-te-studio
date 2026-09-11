@@ -60,6 +60,7 @@ export function packagePathForArtifact(filename: string): string {
 
   if (
     lower.includes("server_verification_manifest") ||
+    lower.includes("audit_history") ||
     lower.includes("package_index")
   ) {
     return `04_Integridad/${filename}`;
