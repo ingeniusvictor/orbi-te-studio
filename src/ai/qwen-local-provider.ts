@@ -10,6 +10,7 @@ export interface QwenLocalProviderOptions {
   baseUrl?: string;
   model?: string;
   timeoutMs?: number;
+  keepAlive?: string;
   fetchImpl?: typeof fetch;
 }
 
@@ -29,6 +30,7 @@ export class QwenLocalProvider implements AIProvider {
 
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
+  private readonly keepAlive: string;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: QwenLocalProviderOptions = {}) {
@@ -37,6 +39,7 @@ export class QwenLocalProvider implements AIProvider {
     );
     this.model = options.model ?? "qwen3:8b";
     this.timeoutMs = options.timeoutMs ?? 120_000;
+    this.keepAlive = options.keepAlive ?? "5m";
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -105,6 +108,7 @@ export class QwenLocalProvider implements AIProvider {
         model: this.model,
         messages: request.messages,
         stream: false,
+        keep_alive: this.keepAlive,
         options: {
           temperature: request.temperature ?? 0.2,
           ...(request.maxTokens !== undefined
