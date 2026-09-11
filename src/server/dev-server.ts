@@ -217,12 +217,17 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      const imageMimeType:
+        | "image/jpeg"
+        | "image/png"
+        | "image/webp" = receipt.mimeType;
+
       const result = await runLocalAIExclusive(() =>
         VISION_PROVIDER.analyze(
           {
             evidenceId: input.evidenceId,
             kind: input.kind,
-            mimeType: receipt.mimeType,
+            mimeType: imageMimeType,
             bytes
           },
           input.instruction
