@@ -60,6 +60,17 @@ export function buildWebExportSummary(draft: TE1FormDraft): WebExportSummary {
         : {})
     },
     {
+      id: "digital-board",
+      label: "Tablero digitalizado",
+      status:
+        approvedForPreparation && Boolean(project.boardTotalWays)
+          ? "ready-to-generate"
+          : "pending",
+      ...(!project.boardTotalWays
+        ? { reason: "Cantidad total de módulos/vías del tablero pendiente." }
+        : {})
+    },
+    {
       id: "electrical-plan",
       label: "Planta eléctrica",
       status: approvedForPreparation && planReady ? "ready-to-generate" : "pending",
