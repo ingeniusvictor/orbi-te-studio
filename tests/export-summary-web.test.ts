@@ -7,7 +7,17 @@ describe("web TE1 export summary", () => {
     const summary = buildWebExportSummary(createCasaGoyoDemoDraft());
 
     expect(summary.approvedForPreparation).toBe(false);
-    expect(summary.documents.every((doc) => doc.status === "pending")).toBe(true);
+
+    const engineeringValidation = summary.documents.find(
+      (document) => document.id === "engineering-validation"
+    );
+    expect(engineeringValidation?.status).toBe("ready-to-generate");
+
+    expect(
+      summary.documents
+        .filter((document) => document.id !== "engineering-validation")
+        .every((document) => document.status === "pending")
+    ).toBe(true);
   });
 
   it("surfaces deterministic engineering blockers in the export document list", () => {
