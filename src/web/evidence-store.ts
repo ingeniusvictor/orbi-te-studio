@@ -12,6 +12,11 @@ const DB_VERSION = 1;
 const STORE_NAME = "evidence";
 const PROJECT_INDEX = "projectId";
 
+type LegacyLocalEvidenceRecord =
+  Omit<LocalEvidenceRecord, "sha256"> & {
+    sha256?: string;
+  };
+
 export interface AddEvidenceInput {
   projectId: string;
   category: EvidenceCategory;
@@ -63,7 +68,7 @@ export async function listEvidence(
   const db = await openEvidenceDb();
   const store = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME);
   const index = store.index(PROJECT_INDEX);
-  const records = await runRequest<Array<LocalEvidenceRecord & { sha256?: string }>>(
+  const records = await runRequest<Array<LegacyLocalEvidenceRecord>>(
     index.getAll(IDBKeyRange.only(projectId))
   );
   db.close();
@@ -78,7 +83,7 @@ export async function getEvidenceBlob(
   id: string
 ): Promise<LocalEvidenceRecord | undefined> {
   const db = await openEvidenceDb();
-  const raw = await runRequest<(LocalEvidenceRecord & { sha256?: string }) | undefined>(
+  const raw = await runRequest<(LegacyLocalEvidenceRecord) | undefined>(
     db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(id)
   );
   db.close();
@@ -116,7 +121,7 @@ export async function deleteProjectEvidence(projectId: string): Promise<void> {
 }
 
 async function ensureHashes(
-  records: Array<LocalEvidenceRecord & { sha256?: string }>
+  records: Array<LegacyLocalEvidenceRecord>
 ): Promise<LocalEvidenceRecord[]> {
   const normalized: LocalEvidenceRecord[] = [];
   const changed: LocalEvidenceRecord[] = [];
