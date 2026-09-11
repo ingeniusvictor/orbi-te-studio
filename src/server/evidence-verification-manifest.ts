@@ -1,9 +1,17 @@
 import { createHash } from "node:crypto";
 import { getEvidenceVerificationReceipt } from "./evidence-verification-registry.js";
-import type { EvidenceReceiptRef } from "./evidence-generation-gate.js";
+import {
+  evidenceRolesFromDraft,
+  type EvidenceReceiptRef
+} from "./evidence-generation-gate.js";
+import type { TE1FormDraft } from "../web/te1-form-model.js";
 
 export interface ServerEvidenceVerificationManifestEntry {
   evidenceId: string;
+  roles: string[];
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
   sha256: string;
   verifiedAt: string;
   receiptExpiresAt: string;
@@ -22,9 +30,12 @@ export interface ServerEvidenceVerificationManifest {
 
 export function buildServerEvidenceVerificationManifest(
   projectId: string,
+  draft: TE1FormDraft,
   requested: EvidenceReceiptRef[],
   generatedAt = new Date()
 ): ServerEvidenceVerificationManifest {
+  const roles = evidenceRolesFromDraft(draft);
+
   const entries: ServerEvidenceVerificationManifestEntry[] = [];
 
   for (const item of requested) {
@@ -47,6 +58,13 @@ export function buildServerEvidenceVerificationManifest(
 
     entries.push({
       evidenceId: receipt.evidenceId,
+      roles: roles
+        .filter((ref) => ref.evidenceId === receipt.evidenceId)
+        .map((ref) => ref.role)
+        .sort(),
+      filename: receipt.filename,
+      mimeType: receipt.mimeType,
+      sizeBytes: receipt.sizeBytes,
       sha256: receipt.sha256,
       verifiedAt: receipt.verifiedAt,
       receiptExpiresAt: receipt.expiresAt,
