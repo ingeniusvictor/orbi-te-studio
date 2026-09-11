@@ -13,6 +13,11 @@ describe("TE1 organized ZIP package", () => {
       "01_Planos/Casa_TE1_A2.pdf"
     );
     expect(
+      packagePathForArtifact("Casa_TE1_tablero_frontal.svg")
+    ).toBe(
+      "01_Planos/Casa_TE1_tablero_frontal.svg"
+    );
+    expect(
       packagePathForArtifact("TE1_TE1_informe_fotografico.pdf")
     ).toBe(
       "02_Informes/TE1_TE1_informe_fotografico.pdf"
