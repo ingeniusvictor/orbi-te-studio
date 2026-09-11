@@ -175,6 +175,44 @@ export function StepForm({ step, draft, projectId, onChange }: Props) {
           />
           <span>Croquis de ubicación verificado contra evidencia real</span>
         </label>
+
+        <div className="subsection wide">
+          <strong>Geometría explícita para croquis de lámina</strong>
+          <p className="storage-note">
+            ORBI no inventa calles. Registra solo límites o vías confirmadas por
+            evidencia para poder dibujar un croquis específico.
+          </p>
+          <div className="form-grid compact-grid">
+            <Field label="Calle / límite norte">
+              <input
+                value={draft.location.northStreet}
+                onChange={updateLocation("northStreet")}
+                placeholder="Opcional si no existe evidencia"
+              />
+            </Field>
+            <Field label="Calle / límite sur">
+              <input
+                value={draft.location.southStreet}
+                onChange={updateLocation("southStreet")}
+                placeholder="Opcional si no existe evidencia"
+              />
+            </Field>
+            <Field label="Calle / límite este">
+              <input
+                value={draft.location.eastStreet}
+                onChange={updateLocation("eastStreet")}
+                placeholder="Opcional si no existe evidencia"
+              />
+            </Field>
+            <Field label="Calle / límite oeste">
+              <input
+                value={draft.location.westStreet}
+                onChange={updateLocation("westStreet")}
+                placeholder="Opcional si no existe evidencia"
+              />
+            </Field>
+          </div>
+        </div>
       </div>
     );
   }
