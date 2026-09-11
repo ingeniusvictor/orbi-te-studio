@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { generateTE1FromDraft } from "./generate-te1-service.js";
-import { verifyEvidenceUploads, type EvidenceVerificationUpload } from "./verify-evidence-service.js";
+import { verifyEvidenceUploads } from "./verify-evidence-service.js";
 import { consumeEvidenceVerificationReceipts, createEvidenceVerificationReceipt, validateEvidenceVerificationReceipts } from "./evidence-verification-registry.js";
 import { auditReceiptCoverage } from "./evidence-generation-gate.js";
 import { buildServerEvidenceVerificationManifest, serverEvidenceVerificationManifestToJson } from "./evidence-verification-manifest.js";
@@ -14,7 +14,6 @@ import { buildTE1PackageReadme } from "./te1-package-readme.js";
 import { appendServerPackageGeneratedEvent, projectAuditHistoryToJson, validateProjectAuditHistory } from "./project-audit-history.js";
 import { appendServerPackageEvent, serverAuditLedgerForProject, serverAuditLedgerToJson, syncClientAuditHistoryToServerLedger, validateServerApprovalForRevision } from "./server-audit-ledger.js";
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
-import type { TE1FormDraft } from "../web/te1-form-model.js";
 import type { ProjectAuditHistory } from "../web/audit-log.js";
 import { validateEvidenceVerifyRequest, validateGenerateTE1Request } from "./runtime-payload-validation.js";
 
