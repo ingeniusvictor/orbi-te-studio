@@ -10,6 +10,7 @@ import { consumeVerifiedEvidenceBuffers, storeVerifiedEvidenceBuffer } from "./v
 import { buildTE1PackageIndex, te1PackageIndexToJson, type PackageArtifactInput } from "./te1-package-index.js";
 import { validateEvidenceManifestAgainstReceipts } from "./evidence-manifest-gate.js";
 import { buildTE1PackageZip } from "./te1-package-zip.js";
+import { buildTE1PackageReadme } from "./te1-package-readme.js";
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 
@@ -230,12 +231,21 @@ const server = createServer(async (request, response) => {
         }
       ];
 
+      const packageReadme = buildTE1PackageReadme(
+        projectId,
+        draft
+      );
+      const packageArtifactsWithReadme: PackageArtifactInput[] = [
+        ...packageArtifacts,
+        packageReadme
+      ];
+
       const packageIndex = buildTE1PackageIndex(
         projectId,
-        packageArtifacts
+        packageArtifactsWithReadme
       );
       const finalArtifacts: PackageArtifactInput[] = [
-        ...packageArtifacts,
+        ...packageArtifactsWithReadme,
         {
           filename: `${projectId}_TE1_package_index.json`,
           mimeType: "application/json",
