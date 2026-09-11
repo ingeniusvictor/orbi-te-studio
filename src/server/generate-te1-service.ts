@@ -97,7 +97,17 @@ export async function generateTE1FromDraft(
         mimeType: generated.manifest.mimeType,
         encoding: "utf8",
         content: generated.manifest.text
-      }
+      },
+      ...(generated.panelFrontSvg
+        ? [
+            {
+              filename: generated.panelFrontSvg.filename,
+              mimeType: generated.panelFrontSvg.mimeType,
+              encoding: "utf8" as const,
+              content: generated.panelFrontSvg.text
+            }
+          ]
+        : [])
     ]
   };
 }
