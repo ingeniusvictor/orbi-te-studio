@@ -16,6 +16,7 @@ import { appendServerPackageEvent, serverAuditLedgerForProject, serverAuditLedge
 import type { EvidenceManifest } from "../web/evidence-manifest.js";
 import type { TE1FormDraft } from "../web/te1-form-model.js";
 import type { ProjectAuditHistory } from "../web/audit-log.js";
+import { validateEvidenceVerifyRequest, validateGenerateTE1Request } from "./runtime-payload-validation.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MAX_BODY_BYTES = 30 * 1024 * 1024;
@@ -44,21 +45,20 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/api/te1/evidence/verify") {
     try {
       const payload = await readJsonBody(request);
-      const projectId =
-        (payload as { projectId?: string }).projectId?.trim() || "TE1-DRAFT";
-      const uploads = (payload as { uploads?: EvidenceVerificationUpload[] }).uploads;
-
-      if (!Array.isArray(uploads) || uploads.length === 0) {
+      const requestValidation = validateEvidenceVerifyRequest(payload);
+      if (!requestValidation.ok || !requestValidation.value) {
         json(response, 422, {
           ok: false,
           algorithm: "SHA-256",
           verifiedAt: new Date().toISOString(),
           items: [],
-          message: "La solicitud debe incluir al menos un archivo de evidencia."
+          message: "La solicitud de evidencia no supera validación estructural.",
+          issues: requestValidation.issues
         });
         return;
       }
 
+      const { projectId, uploads } = requestValidation.value;
       const result = verifyEvidenceUploads(uploads);
       const receipts = result.ok
         ? result.items.map((item, index) => {
@@ -101,52 +101,24 @@ const server = createServer(async (request, response) => {
   if (request.method === "POST" && request.url === "/api/te1/generate") {
     try {
       const payload = await readJsonBody(request);
-      const draft = (payload as { draft?: TE1FormDraft }).draft;
-      const projectId =
-        (payload as { projectId?: string }).projectId?.trim() || "TE1-DRAFT";
-      const evidenceReceipts =
-        (payload as {
-          evidenceReceipts?: Array<{
-            token: string;
-            evidenceId: string;
-            sha256: string;
-          }>;
-        }).evidenceReceipts;
-      const evidenceManifestJson =
-        (payload as { evidenceManifestJson?: string }).evidenceManifestJson;
-      const auditHistoryJson =
-        (payload as { auditHistoryJson?: string }).auditHistoryJson;
-
-      if (!draft) {
+      const requestValidation = validateGenerateTE1Request(payload);
+      if (!requestValidation.ok || !requestValidation.value) {
         json(response, 422, {
           ok: false,
           code: "INVALID_REQUEST",
-          message: "El cuerpo debe incluir un objeto draft.",
-          issues: ["draft es obligatorio."]
+          message: "La solicitud TE1 no supera validación estructural.",
+          issues: requestValidation.issues
         });
         return;
       }
 
-      if (!Array.isArray(evidenceReceipts) || evidenceReceipts.length === 0) {
-        json(response, 422, {
-          ok: false,
-          code: "INVALID_REQUEST",
-          message:
-            "La generación TE1 requiere comprobantes de evidencia verificada.",
-          issues: ["evidenceReceipts es obligatorio."]
-        });
-        return;
-      }
-
-      if (!evidenceManifestJson?.trim()) {
-        json(response, 422, {
-          ok: false,
-          code: "INVALID_REQUEST",
-          message: "La generación TE1 requiere evidence manifest.",
-          issues: ["evidenceManifestJson es obligatorio."]
-        });
-        return;
-      }
+      const {
+        draft,
+        projectId,
+        evidenceReceipts,
+        evidenceManifestJson,
+        auditHistoryJson
+      } = requestValidation.value;
 
       let evidenceManifest: EvidenceManifest;
       try {
@@ -159,16 +131,6 @@ const server = createServer(async (request, response) => {
           code: "INVALID_REQUEST",
           message: "El evidence manifest no contiene JSON válido.",
           issues: ["evidenceManifestJson inválido."]
-        });
-        return;
-      }
-
-      if (!auditHistoryJson?.trim()) {
-        json(response, 422, {
-          ok: false,
-          code: "INVALID_REQUEST",
-          message: "La generación TE1 requiere historial de auditoría.",
-          issues: ["auditHistoryJson es obligatorio."]
         });
         return;
       }
