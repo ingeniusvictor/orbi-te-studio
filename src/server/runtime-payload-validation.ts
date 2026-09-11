@@ -260,7 +260,8 @@ function validateDraft(
 
   [
     ["name", 200],
-    ["voltageV", 20]
+    ["voltageV", 20],
+    ["surfaceM2", 20]
   ].forEach(([key, max]) =>
     stringField(project, String(key), issues, {
       prefix: "draft.project",
