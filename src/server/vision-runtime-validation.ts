@@ -18,6 +18,7 @@ const KINDS = new Set<VisionEvidenceKind>([
   "board-front",
   "board-internal",
   "board-legend",
+  "location-sketch",
   "architectural-plan",
   "measured-sketch",
   "legacy-plan",
