@@ -17,7 +17,8 @@ describe("panel-front SVG renderer", () => {
             ratedCurrentA: 25,
             breakingCapacityKA: 6
           },
-          status: "observed"
+          confidence: "high",
+          evidenceIds: ["EV-BOARD"]
         },
         {
           position: 2,
@@ -28,7 +29,8 @@ describe("panel-front SVG renderer", () => {
             ratedCurrentA: 25,
             residualCurrentMA: 30
           },
-          status: "observed"
+          confidence: "high",
+          evidenceIds: ["EV-BOARD"]
         },
         {
           position: 3,
@@ -40,7 +42,8 @@ describe("panel-front SVG renderer", () => {
             ratedCurrentA: 10,
             breakingCapacityKA: 6
           },
-          status: "observed"
+          confidence: "high",
+          evidenceIds: ["EV-BOARD"]
         }
       ]
     );
