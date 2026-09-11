@@ -33,7 +33,6 @@ export interface ServerAuditLedger {
   events: ServerLedgerEvent[];
 }
 
-let ledgerMutationQueue: Promise<void> = Promise.resolve();
 
 export async function loadServerAuditLedger(
   filePath: string
